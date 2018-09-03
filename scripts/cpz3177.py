@@ -30,16 +30,14 @@ def select_singlediff():
 
 if __name__ == '__main__':
     ch_number = {'single': 64, 'diff': 32}        
-    node_name = 'cpz3177'
 
-    rospy.init_node(node_name)
+    rospy.init_node('cpz3177')
     rate = rospy.get_param('~rate')
-    rsw_id = rospy.get_param('~rsw_id')        
-    rate = rospy.get_param('~rate')
-    rsw_id = rospy.get_param('~rsw_id')        
+    rsw_id = rospy.get_param('~rsw_id')
+    node_name = rospy.get_param('~node_name')    
     
     topic_list = select_singlediff()
-    pub_list = [rospy.Publisher('{0}_AIN_{1}{2}'.format(node_name, mode, ch), Float64, queue_size=1)
+    pub_list = [rospy.Publisher('{0}_rsw{1}_{2}{3}'.format(node_name, rsw_id, mode, ch), Float64, queue_size=1)
                        for ch, mode in topic_list]
 
     try:
