@@ -6,7 +6,6 @@ import numpy
 import pyinterface
 
 import rospy
-import std_msgs
 from std_msgs.msg import Float64
 
 
@@ -57,5 +56,6 @@ while not rospy.is_shutdown():
             
         msg.data = ret
         pub.publish(msg)
+    time.sleep(rate)
     continue
 
