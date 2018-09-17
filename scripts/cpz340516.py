@@ -1,137 +1,108 @@
 #! /usr/bin/env python3
 
+
 import sys
 import time
 import threading
 import pyinterface
 
 import rospy
-import std_msgs
 from std_msgs.msg import Int32
 from std_msgs.msg import Float64
 from std_msgs.msg import String
 
 
 ch_number = 8
-node_name = 'cpz340516'
+
+
+def select_outputrange():
+    outputrange_list = ['DA0_100mA' for _ in range(1, ch_number + 1)]
+    parse = lambda da01_chlist: da01_chlist.strip('[').strip(']').split(',')
+    if parse(rospy.get_param('~DA01ch_list')) == ['']: DA01ch_list = []
+    else: DA01ch_list = list(map(int, parse(rospy.get_param('~DA01ch_list'))))
+    for _ in DA01ch_list: outputrange_list[_-1] = 'DA0_1mA'
+
+    return outputrange_list
 
 
 class cpz340516_controller(object):
 
     def __init__(self):
+        self.rate = rospy.get_param('~rate')
         self.rsw_id = rospy.get_param('~rsw_id')
+        self.node_name = rospy.get_param('~node_name')
         self.flag = 1
-        self.flag_ouputrange = 1
-        self.flag_onoff = 1
-        self.ch = 1
-        self.current = 0.
-        self.ouputrange = 'DA0_100mA'
-        self.onoff = 0
-        self.da = pyinterface.open(3405, self.rsw_id)
-        self.topic_list = [rospy.get_param('~topic{}'.format(i+1)) for i in range(ch_number)]
+        self.lock = 0
+        self.param_buff = []
+
+        try:
+            self.da = pyinterface.open(3405, self.rsw_id)
+        except OSError as e:
+            rospy.logerr('{e.strerror}. node={self.node_name}, rsw={self.rsw_id}'.format(*locals()))
+            sys.exit()        
+
+        [self.da.set_outputrange(ch, outputrange)
+         for ch, outputrange in enumerate(select_outputrange(), start=1)]
+
+        self.topic_list = [('{0}_rsw{1}_{2}_{3}'
+                            .format(self.node_name, self.rsw_id, ch, outputrange))
+                           for ch, outputrange in enumerate(select_outputrange(), start=1)]
+        print(self.topic_list)
         self.pub_list = [rospy.Publisher(topic, Float64, queue_size=1)
                          for topic in self.topic_list]
-        self.sub_list = [rospy.Subscriber(topic+'_cmd', Float64, self.output_current, callback_args=ch)
+        self.sub_list = [rospy.Subscriber(topic+'_cmd', Float64, self.set_param, callback_args=ch)
                          for ch, topic in enumerate(self.topic_list, start=1)]
-        self.topic_outputrange_list = [rospy.get_param('~topic_outputrange{}'.format(i+1)) for i in range(ch_number)]
-        self.pub_outputrange_list = [rospy.Publisher(topic, String, queue_size=1)
-                                     for topic in self.topic_outputrange_list]
-        self.sub_outputrange_list = [rospy.Subscriber(topic+'_cmd', String, self.set_outputrange, callback_args=ch)
-                                     for ch, topic in enumerate(self.topic_outputrange_list, start=1)]
-        self.topic_onoff_list = [rospy.get_param('~topic_onoff{}'.format(i+1)) for i in range(ch_number)]
-        self.pub_onoff_list = [rospy.Publisher(topic, Int32, queue_size=1)
-                                     for topic in self.topic_onoff_list]
-        self.sub_onoff_list = [rospy.Subscriber(topic+'_cmd', Int32, self.set_onoff, callback_args=ch)
-                                     for ch, topic in enumerate(self.topic_onoff_list, start=1)]
-        self.outputrange_status = [rospy.Subscriber(topic+'_stat', String, self.get_outputrange, callback_args=ch)
-                                   for ch, topic in enumerate(self.topic_outputrange_list, start=1)]
-        self.onoff_status = [rospy.Subscriber(topic+'_stat', Int32, self.get_onoff, callback_args=ch)
-                                 for ch, topic in enumerate(self.topic_onoff_list, start=1)]
+        self.sub_lock = rospy.Subscriber('{0}_rsw{1}_lock'
+                                         .format(self.node_name, self.rsw_id), Int32, self.set_lock)
 
-        
-    def set_current_param(self, req, ch):
-        self.ch = ch
-        self.current = req.data
-        self.flag = 0
-        pass            
-
-    def set_outputrange_param(self, req, ch):
-        self.ch = ch
-        self.outputrange = req.data
-        self.flag = 0
-        pass            
-
-    def set_onoff_param(self, req, ch):
-        self.ch = ch
-        self.onoff = req.data
-        self.flag = 0
-        pass            
+    def set_lock(self, req):
+        self.lock = req.data
+        pass
     
+    def set_param(self, req, ch):
+        self.param_buff.append({'{}'.format(ch): req.data})
+        print(req)
+        print(ch)
+        self.flag = 0
+        pass
+
     def output_current(self):
         while not rospy.is_shutdown():
 
             if self.flag == 1:
-                time.sleep(0.01)
+                time.sleep(self.rate)
                 continue
-
-            da.output_current(self.ch, self.current)
-            self.pub_list[self.ch-1].Publish(self.current)
-            self.flag = 1
-            continue
-
-    def set_outputrange(self):
-        while not rospy.is_shutdown():
-
-            if self.flag == 1:
-                time.sleep(0.01)
+            
+            param_buff = self.param_buff.copy()
+            self.param_buff = []
+            
+            for param in param_buff:
+                ch = int(list(param.keys())[0])
+                voltage = list(param.values())[0]
+                
+                if self.lock == 0:
+                    self.da.output_current(ch, voltage)
+                    
+                elif self.lock == 1:
+                    while not(self.lock == 0):
+                        print('[WORNING] Lock is ON, contorol {} is prohibited.'
+                              .format(self.node_name))
+                        time.sleep(1)
+                    self.param_buff, param_buff = [], []
+                    print('[INFO] Lock is OFF, and ouput current data is deleted.')
+                    break
+                
+                self.pub_list[ch-1].publish(voltage)
+                self.flag = 1
                 continue
-
-            da.output_outputrange(self.ch, self.outputrange)
-            self.pub_list[self.ch-1].Publish(self.outputrange)
-            self.flag = 1
-            continue
-
-    def set_onoff(self):
-        while not rospy.is_shutdown():
-
-            if self.flag == 1:
-                time.sleep(0.01)
-                continue
-
-            da.output_onoff(self.ch, self.onoff)
-            self.pub_list[self.ch-1].Publish(self.onoff)
-            self.flag = 1
-            continue
-
-    def get_outputrange(self, req, ch):
-        self.ch = ch
-        outputrange = da.get_outputrange(self.ch)['ch{}'.format(self.ch)]
-        msg = String()
-        msg.data = outputrange
-        self.pub_outputrange_list[self.ch1].Publish(msg)
-        return
-
-    def get_onoff(self, req, ch):
-        self.ch = ch
-        onoff = da.get_onoff(self.ch)['ch{}'.format(self.ch)]
-        msg = Int32()
-        msg.data = onoff
-        self.pub_onoff_list[self.ch].Publish(msg)
-        return
 
     def start_thread_ROS(self):
         th = threading.Thread(target=self.output_current)
         th.setDaemon(True)
         th.start()
-        th2 = threading.Thread(target=self.set_outputrange)
-        th2.setDaemon(True)
-        th2.start()        
-        th3 = threading.Thread(target=self.set_onoff)
-        th3.setDaemon(True)
-        th3.start()        
 
 if __name__ == '__main__':
-    rospy.init_node(node_name)
+    rospy.init_node('cpz340516')
     ctrl = cpz340516_controller()
     ctrl.start_thread_ROS()
     rospy.spin()

@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+
 import sys
 import time
 import threading
@@ -23,7 +24,12 @@ class cpz340816_controller(object):
         self.lock = 0
         self.param_buff = []        
 
-        self.da = pyinterface.open(3408, self.rsw_id)
+        try:
+            self.da = pyinterface.open(3408, self.rsw_id)
+        except OSError as e:
+            rospy.logerr("{e.strerror}. node={node_name}, rsw={rsw_id}".
+                         format(self.node_name, self.rsw_id))
+            sys.exit()
         
         self.topic_list = [('{0}_rsw{1}_{2}'.format(self.node_name, self.rsw_id, _))
                            for _ in range(1, ch_number + 1)]
@@ -62,11 +68,11 @@ class cpz340816_controller(object):
                     
                 elif self.lock == 1:
                     while not(self.lock == 0):
-                        print('[Worning] Lock is ON, contorol {} is prohibited.'
+                        print('[WORNING] Lock is ON, contorol {} is prohibited.'
                               .format(self.node_name))
                         time.sleep(1)
                     self.param_buff, param_buff = [], []
-                    print('[Info] Lock is OFF, and ouput voltage data is deleted.')
+                    print('[INFO] Lock is OFF, and ouput voltage data is deleted.')
                     break
                 
                 self.pub_list[ch-1].publish(voltage)
