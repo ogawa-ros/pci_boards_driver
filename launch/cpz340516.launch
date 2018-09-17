@@ -1,30 +1,8 @@
 <launch>
-  <node pkg="pci_boards_driver" name="cpz340516" type="cpz340516.py" required="true" output="screen">
-    <param name="~rate" value="1" />
+  <node pkg="pci_boards_driver" name="cpz340516_1" type="cpz340516.py" required="true" output="screen">
+    <param name="~rate" value="0.1" />
     <param name="~rsw_id" value="0" />
-    <param name="~topic1" value="cpz340516_ch1" />
-    <param name="~topic2" value="cpz340516_ch2" />
-    <param name="~topic3" value="cpz340516_ch3" />
-    <param name="~topic4" value="cpz340516_ch4" />
-    <param name="~topic5" value="cpz340516_ch5" />
-    <param name="~topic6" value="cpz340516_ch6" />
-    <param name="~topic7" value="cpz340516_ch7" />
-    <param name="~topic8" value="cpz340516_ch8" />
-    <param name="~topic_outputrange1" value="cpz340516_outputrange_ch1" />
-    <param name="~topic_outputrange2" value="cpz340516_outputrange_ch2" />
-    <param name="~topic_outputrange3" value="cpz340516_outputrange_ch3" />
-    <param name="~topic_outputrange4" value="cpz340516_outputrange_ch4" />
-    <param name="~topic_outputrange5" value="cpz340516_outputrange_ch5" />
-    <param name="~topic_outputrange6" value="cpz340516_outputrange_ch6" />
-    <param name="~topic_outputrange7" value="cpz340516_outputrange_ch7" />
-    <param name="~topic_outputrange8" value="cpz340516_outputrange_ch8" />
-    <param name="~topic_onoff1" value="cpz340516_onoff_ch1" />
-    <param name="~topic_onoff2" value="cpz340516_onoff_ch2" />
-    <param name="~topic_onoff3" value="cpz340516_onoff_ch3" />
-    <param name="~topic_onoff4" value="cpz340516_onoff_ch4" />
-    <param name="~topic_onoff5" value="cpz340516_onoff_ch5" />
-    <param name="~topic_onoff6" value="cpz340516_onoff_ch6" />
-    <param name="~topic_onoff7" value="cpz340516_onoff_ch7" />
-    <param name="~topic_onoff8" value="cpz340516_onoff_ch8" />
+    <param name="~node_name" value="cpz340516_1" />
+    <param name="~DA01ch_list" value="[]" />
   </node>
 </launch>
