@@ -47,7 +47,6 @@ class cpz340516_controller(object):
         self.topic_list = [('{0}_rsw{1}_{2}_{3}'
                             .format(self.node_name, self.rsw_id, ch, outputrange))
                            for ch, outputrange in enumerate(select_outputrange(), start=1)]
-        print(self.topic_list)
         self.pub_list = [rospy.Publisher(topic, Float64, queue_size=1)
                          for topic in self.topic_list]
         self.sub_list = [rospy.Subscriber(topic+'_cmd', Float64, self.set_param, callback_args=ch)
@@ -61,8 +60,6 @@ class cpz340516_controller(object):
     
     def set_param(self, req, ch):
         self.param_buff.append({'{}'.format(ch): req.data})
-        print(req)
-        print(ch)
         self.flag = 0
         pass
 
@@ -78,10 +75,10 @@ class cpz340516_controller(object):
             
             for param in param_buff:
                 ch = int(list(param.keys())[0])
-                voltage = list(param.values())[0]
+                current = list(param.values())[0]
                 
                 if self.lock == 0:
-                    self.da.output_current(ch, voltage)
+                    self.da.output_current(ch, current)
                     
                 elif self.lock == 1:
                     while not(self.lock == 0):
@@ -92,7 +89,7 @@ class cpz340516_controller(object):
                     print('[INFO] Lock is OFF, and ouput current data is deleted.')
                     break
                 
-                self.pub_list[ch-1].publish(voltage)
+                self.pub_list[ch-1].publish(current)
                 self.flag = 1
                 continue
 
