@@ -12,7 +12,8 @@ from std_msgs.msg import Float64
 
 def select_singlediff():
     parse = lambda diffch_list: diffch_list.strip('[').strip(']').split(',')
-    diffch_list = list(map(int, parse(rospy.get_param('~diffch_list'))))
+    if parse(rospy.get_param('~diffch_list')) == ['']: diffch_list = []
+    else: diffch_list = list(map(int, parse(rospy.get_param('~diffch_list'))))
     ch_array = numpy.arange(1, ch_number['single'] + 1, 1).reshape(8, 8)
     get_prohibit_singlech = lambda ch: [ch_array[int((ch - 1) / 8 * 2)][ch % 8 -1],
                                         ch_array[int((ch - 1) / 8 * 2 + 1)][ch % 8 - 1]]
