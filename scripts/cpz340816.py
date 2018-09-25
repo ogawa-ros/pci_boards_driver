@@ -19,7 +19,7 @@ class cpz340816_controller(object):
     def __init__(self):
         self.rate = rospy.get_param('~rate')
         self.rsw_id = rospy.get_param('~rsw_id')
-        self.node_name = rospy.get_param('~node_name')
+        self.node_name = 'cpz340816'
         self.flag = 1
         self.lock = 0
         self.param_buff = []        

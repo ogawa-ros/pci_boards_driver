@@ -35,7 +35,7 @@ if __name__ == '__main__':
     rospy.init_node('cpz3177')
     rate = rospy.get_param('~rate')
     rsw_id = rospy.get_param('~rsw_id')
-    node_name = rospy.get_param('~node_name')    
+    node_name = 'cpz3177'
     
     topic_list = select_singlediff()
     pub_list = [rospy.Publisher('{0}_rsw{1}_{2}{3}'.format(node_name, rsw_id, mode, ch), Float64, queue_size=1)

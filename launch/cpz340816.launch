@@ -2,6 +2,5 @@
   <node pkg="pci_boards_driver" name="cpz340816" type="cpz340816.py" required="true" output="screen">
     <param name="~rate" value="0.1" />
     <param name="~rsw_id" value="0" />
-    <param name="~node_name" value="cpz340816" />
   </node>
 </launch>
