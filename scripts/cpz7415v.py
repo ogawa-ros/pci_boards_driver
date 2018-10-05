@@ -58,7 +58,7 @@ class cpz7415v_controller(object):
     def set_length(self, length):
         # temp
         length_li = []
-        self.length = length_li.append(length)
+        self.length = length_li.append(length.data)
         self.length_flag = 1
         pass
 
