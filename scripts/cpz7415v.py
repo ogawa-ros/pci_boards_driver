@@ -98,10 +98,8 @@ class cpz7415v_controller(object):
             ###=== Standby loop with pulse output ===###
             while self.ptp_flag == self.mot.check_move_onoff(axis=self.axis)[0]:
                 time.sleep(self.rate)
+                self.ptp_flag = 0
                 continue
-            ###=== End of PTP operation ===###
-            self.ptp_flag = 0
-            return
 
     def output_length(self):
         while not rospy.is_shutdown():
