@@ -114,7 +114,7 @@ class cpz7415v_controller(object):
             self.length_flag == 0
             continue
 
-    def start_thread_jog_switch(self):
+    def start_thread_ROS(self):
         th1 = threading.Thread(target=self.move_jog)
         th2 = threading.Thread(target=self.move_ptp)
         th3 = threading.Thread(target=self.output_length)
