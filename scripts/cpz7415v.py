@@ -20,7 +20,7 @@ class cpz7415v_controller(object):
         self.jog_flag = 0
         self.ptp_flag = 0
         self.length_flag = 0
-        self.length_li
+        self.length_li = []
         ###=== Create instance ===###
         try: self.mot = pyinterface.open(7415, self.rsw_id)
         except OSError as e:
