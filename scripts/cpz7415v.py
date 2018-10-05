@@ -110,6 +110,7 @@ class cpz7415v_controller(object):
                 time.sleep(self.rate)
                 continue
             ###=== set length ===###
+            print(self.length_li)
             self.mot.set_length(axis=self.axis, length=self.length_li)
             self.length_flag == 0
             continue
