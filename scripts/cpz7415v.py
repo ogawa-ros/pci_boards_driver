@@ -40,7 +40,7 @@ class cpz7415v_controller(object):
         #self.pub_switch = rospy.Publisher(topic_switch, Int64, queue_size=1)
         #self.pub_speed = rospy.Publisher(topic_speed, Float64, queue_size=1)
         #self.pub_position = rospy.Publisher(topic_position, Float64, queue_size=1)
-        self.pub_onoff = rospy.Publisher(topic_onoff, int64, queue_size=1)
+        self.pub_onoff = rospy.Publisher(topic_onoff, Int64, queue_size=1)
         ###=== Define Subscriber ===###
         self.sub_jog_switch = rospy.Subscriber(topic_jog_switch + '_cmd', Int64, self.jog_switch)
         self.sub_ptp_switch = rospy.Subscriber(topic_ptp_switch + '_cmd', Int64, self.ptp_switch)
