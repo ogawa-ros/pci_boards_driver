@@ -107,12 +107,10 @@ class cpz7415v_controller(object):
         while not rospy.is_shutdown():
             ###=== Standby loop for set length ===###
             if self.length_flag == 0:
-                print(self.length_flag)
                 time.sleep(self.rate)
                 continue
             ###=== set length ===###
             self.mot.set_length(axis=self.axis, length=self.length_li)
-            #self.length_li = []
             self.length_flag = 0
             continue
 
