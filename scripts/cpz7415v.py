@@ -19,8 +19,7 @@ class cpz7415v_controller(object):
         self.node_name = rospy.get_param('~node_name')
         self.jog_flag = 0
         self.ptp_flag = 0
-        self.speed_flag = 0
-        self.position_flag = 0
+        self.length_flag = 0
         ###=== Create instance ===###
         try: self.mot = pyinterface.open(7415, self.rsw_id)
         except OSError as e:
@@ -34,6 +33,7 @@ class cpz7415v_controller(object):
         ###=== Define topic ===
         topic_jog_switch = '{0}_rsw{1}_{2}_jog_switch'.format(self.node_name, self.rsw_id, self.axis)
         topic_ptp_switch = '{0}_rsw{1}_{2}_ptp_switch'.format(self.node_name, self.rsw_id, self.axis)
+        topic_length = '{0}_rsw{1}_{2}_length'.format(self.node_name, self.rsw_id, self.axis)
         #topic_speed = '{0}_rsw{1}_{2}_speed'.format(self.node_name, self.rsw_id, self.axis)
         #topic_position =  '{0}_rsw{1}_{2}_position'.format(self.node_name, self.rsw_id, self.axis)
         ###=== Define Publisher ===###
@@ -43,17 +43,23 @@ class cpz7415v_controller(object):
         ###=== Define Subscriber ===###
         self.jog_switch_sub = rospy.Subscriber(topic_jog_switch + '_cmd', Int64, self.jog_switch)
         self.ptp_switch_sub = rospy.Subscriber(topic_ptp_switch + '_cmd', Int64, self.ptp_switch)
+        self.length_sub = rospy.Subscriber(topic_length + '_cmd', Float64, self.set_length)
         #self.sub_speed = rospy.Subscriber(topic_speed + '_cmd', Float64, self.set_speed)
         #self.sub_position = rospy.Publisher(topic_position + '_cmd', Float64, self.set_position)
 
     def jog_switch(self, q):
         self.jog_flag = q.data
         return
-    
+
     def ptp_switch(self, q):
         self.ptp_flag = q.data
         return
-    
+
+    def set_length(self, length):
+        self.length = length
+        self.length_flag = 1
+        pass
+
     def move_jog(self):
         while not rospy.is_shutdown():
             ###=== Standby loop without pulse output ===###
@@ -75,7 +81,7 @@ class cpz7415v_controller(object):
             self.mot.stop(axis=self.axis, check_onoff=True)
             time.sleep(self.rate)
             continue
-            
+
     def move_ptp(self):
         while not rospy.is_shutdown():
             ###=== Standby loop without pulse output ===###
@@ -95,30 +101,32 @@ class cpz7415v_controller(object):
                 continue
             ###=== End of PTP operation ===###
             self.ptp_flag = 0
+            return
+
+    def output_length(self):
+        while not rospy.is_shutdown():
+            ###=== Standby loop for set length ===###
+            if self.length_flag == 0:
+                time.sleep(self.rate)
+                continue
+            ###=== set length ===###
+            self.mot.set_length(axis=self.axis, length=self.length)
+            self.length_flag == 0
             continue
-    
-    def set_length(self, length):
-        pass
-
-    def set_speed(self, speed):
-        pass
-
-    def set_position(self, position):
-        pass
 
     def start_thread_jog_switch(self):
-        th = threading.Thread(target=self.move_jog)
-        th.setDaemon(True)
-        th.start()
-        
-    def start_thread_ptp_switch(self):
-        th = threading.Thread(target=self.move_ptp)
-        th.setDaemon(True)
-        th.start()
+        th1 = threading.Thread(target=self.move_jog)
+        th2 = threading.Thread(target=self.move_ptp)
+        th3 = threading.Thread(target=self.output_length)
+        th1.setDaemon(True)
+        th2.setDaemon(True)
+        th3.setDaemon(True)
+        th1.start()
+        th2.start()
+        th3.start()
 
 if __name__ == '__main__':
     rospy.init_node('cpz7415v')
     ctrl = cpz7415v_controller()
-    ctrl.start_thread_jog_switch()
-    ctrl.start_thread_ptp_switch()
+    ctrl.start_thread_ROS()
     rospy.spin()
