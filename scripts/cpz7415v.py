@@ -111,6 +111,7 @@ class cpz7415v_controller(object):
                 continue
             ###=== set length ===###
             self.mot.set_length(axis=self.axis, length=self.length_li)
+            self.length_li = []
             self.length_flag = 0
             continue
 
