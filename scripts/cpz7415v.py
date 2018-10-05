@@ -9,6 +9,7 @@ import threading
 import rospy
 from std_msgs.msg import Float64
 from std_msgs.msg import Int64
+from std_msgs.msg import Float64MultiArray
 
 class cpz7415v_controller(object):
 
@@ -43,7 +44,7 @@ class cpz7415v_controller(object):
         ###=== Define Subscriber ===###
         self.jog_switch_sub = rospy.Subscriber(topic_jog_switch + '_cmd', Int64, self.jog_switch)
         self.ptp_switch_sub = rospy.Subscriber(topic_ptp_switch + '_cmd', Int64, self.ptp_switch)
-        self.length_sub = rospy.Subscriber(topic_length + '_cmd', Float64, self.set_length)
+        self.length_sub = rospy.Subscriber(topic_length + '_cmd', Float64MultiArray, self.set_length)
         #self.sub_speed = rospy.Subscriber(topic_speed + '_cmd', Float64, self.set_speed)
         #self.sub_position = rospy.Publisher(topic_position + '_cmd', Float64, self.set_position)
 
