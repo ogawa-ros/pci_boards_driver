@@ -1,26 +1,24 @@
 <launch>
+
   <node pkg="pci_boards_driver" name="cpz7415v" type="cpz7415v.py" required="true" output="screen">
     <param name="~rate" value="0.01" />
     <param name="~rsw_id" value="0" />
     <param name="~axis" value="x" />
     <param name="~node_name" value="cpz7415v" />
   </node>
-</launch>
 
-<launch>
   <node pkg="pci_boards_driver" name="cpz7415v" type="cpz7415v.py" required="true" output="screen">
     <param name="~rate" value="0.01" />
     <param name="~rsw_id" value="0" />
     <param name="~axis" value="y" />
     <param name="~node_name" value="cpz7415v" />
   </node>
-</launch>
 
-<launch>
   <node pkg="pci_boards_driver" name="cpz7415v" type="cpz7415v.py" required="true" output="screen">
     <param name="~rate" value="0.01" />
     <param name="~rsw_id" value="0" />
     <param name="~axis" value="z" />
     <param name="~node_name" value="cpz7415v" />
   </node>
+
 </launch>
