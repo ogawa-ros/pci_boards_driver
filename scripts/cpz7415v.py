@@ -55,10 +55,10 @@ class cpz7415v_controller(object):
         self.ptp_flag = q.data
         return
 
-    def set_length(self, length):
+    def set_length(self, q):
         # temp
         length_li = []
-        self.length = length_li.append(length.data)
+        self.length = length_li.append(q.data)
         print(self.length)
         self.length_flag = 1
         pass
