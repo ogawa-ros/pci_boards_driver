@@ -35,18 +35,16 @@ class cpz7415v_controller(object):
         topic_jog_switch = '{0}_rsw{1}_{2}_jog_switch'.format(self.node_name, self.rsw_id, self.axis)
         topic_ptp_switch = '{0}_rsw{1}_{2}_ptp_switch'.format(self.node_name, self.rsw_id, self.axis)
         topic_length = '{0}_rsw{1}_{2}_length'.format(self.node_name, self.rsw_id, self.axis)
-        #topic_speed = '{0}_rsw{1}_{2}_speed'.format(self.node_name, self.rsw_id, self.axis)
-        #topic_position =  '{0}_rsw{1}_{2}_position'.format(self.node_name, self.rsw_id, self.axis)
+        topic_onoff = '{0}_rsw{1}_{2}_onoff'.format(self.node_name, self.rsw_id, self.axis)
         ###=== Define Publisher ===###
         #self.pub_switch = rospy.Publisher(topic_switch, Int64, queue_size=1)
         #self.pub_speed = rospy.Publisher(topic_speed, Float64, queue_size=1)
         #self.pub_position = rospy.Publisher(topic_position, Float64, queue_size=1)
+        self.pub_onoff = rospy.Publisher(topic_onoff, int64, queue_size=1)
         ###=== Define Subscriber ===###
-        self.jog_switch_sub = rospy.Subscriber(topic_jog_switch + '_cmd', Int64, self.jog_switch)
-        self.ptp_switch_sub = rospy.Subscriber(topic_ptp_switch + '_cmd', Int64, self.ptp_switch)
-        self.length_sub = rospy.Subscriber(topic_length + '_cmd', Float64, self.set_length)
-        #self.sub_speed = rospy.Subscriber(topic_speed + '_cmd', Float64, self.set_speed)
-        #self.sub_position = rospy.Publisher(topic_position + '_cmd', Float64, self.set_position)
+        self.sub_jog_switch = rospy.Subscriber(topic_jog_switch + '_cmd', Int64, self.jog_switch)
+        self.sub_ptp_switch = rospy.Subscriber(topic_ptp_switch + '_cmd', Int64, self.ptp_switch)
+        self.sub_length = rospy.Subscriber(topic_length + '_cmd', Float64, self.set_length)
 
     def jog_switch(self, q):
         self.jog_flag = q.data
@@ -115,16 +113,38 @@ class cpz7415v_controller(object):
             self.length_flag = 0
             continue
 
+    def check_move_onoff(self):
+        #temp
+        self.pub_onoff.publish(self.mot.check_move_onoff(axis=self.axis)[0])
+        while not rospy.is_shutdown():
+            ###=== Standby loop without pulse output ===###
+            if self.mot.check_move_onoff(axis=self.axis)[0] == 0:
+                time.sleep(self.rate)
+                continue
+            ###=== publish onoff ===###
+            self.pub_onoff.publish(self.mot.check_move_onoff(axis=self.axis)[0])
+            ###=== Standby loop with pulse output ===###
+            while self.mot.check_move_onoff(axis=self.axis)[0] == 1:
+                time.sleep(self.rate)
+                continue
+            ###=== publish onoff ===###
+            self.pub_onoff.publish(self.mot.check_move_onoff(axis=self.axis)[0])
+            continue
+
     def start_thread_ROS(self):
         th1 = threading.Thread(target=self.move_jog)
         th2 = threading.Thread(target=self.move_ptp)
         th3 = threading.Thread(target=self.output_length)
+        th4 = threading.Thread(target=self.check_move_onoff)
         th1.setDaemon(True)
         th2.setDaemon(True)
         th3.setDaemon(True)
+        th4.setDaemon(True)
         th1.start()
         th2.start()
         th3.start()
+        th4.start()
+        return
 
 if __name__ == '__main__':
     rospy.init_node('cpz7415v')
