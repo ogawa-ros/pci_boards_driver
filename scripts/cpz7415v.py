@@ -20,6 +20,7 @@ class cpz7415v_controller(object):
         self.jog_flag = 0
         self.ptp_flag = 0
         self.length_flag = 0
+        self.length_li
         ###=== Create instance ===###
         try: self.mot = pyinterface.open(7415, self.rsw_id)
         except OSError as e:
@@ -57,8 +58,7 @@ class cpz7415v_controller(object):
 
     def set_length(self, q):
         # temp
-        length_li = []
-        self.length = length_li.append(q.data)
+        self.length_li.append(q.data)
         print(length_li)
         self.length_flag = 1
         pass
@@ -111,7 +111,7 @@ class cpz7415v_controller(object):
                 time.sleep(self.rate)
                 continue
             ###=== set length ===###
-            self.mot.set_length(axis=self.axis, length=self.length)
+            self.mot.set_length(axis=self.axis, length=self.length_li)
             self.length_flag == 0
             continue
 
