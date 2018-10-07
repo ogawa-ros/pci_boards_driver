@@ -60,13 +60,13 @@ class cpz340516_controller(object):
     
     def set_param(self, req, ch):
         self.param_buff.append({'{}'.format(ch): req.data})
-        self.flag = 0
+        # self.flag = 0
         pass
 
     def output_current(self):
         while not rospy.is_shutdown():
 
-            if self.flag == 1:
+            if self.param_buff == []:
                 time.sleep(self.rate)
                 continue
             
