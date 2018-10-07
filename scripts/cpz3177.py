@@ -15,8 +15,10 @@ def select_singlediff():
     if parse(rospy.get_param('~diffch_list')) == ['']: diffch_list = []
     else: diffch_list = list(map(int, parse(rospy.get_param('~diffch_list'))))
     ch_array = numpy.arange(1, ch_number['single'] + 1, 1).reshape(8, 8)
-    get_prohibit_singlech = lambda ch: [ch_array[int((ch - 1) / 8 * 2)][ch % 8 -1],
-                                        ch_array[int((ch - 1) / 8 * 2 + 1)][ch % 8 - 1]]
+    def get_prohibit_singlech(ch):
+        if ch in [(_ + 1) * 8 for _ in range(4)]: return [ch * 2 - 8, ch * 2]
+        else: return [ch_array[int(ch // 8 * 2)][ch % 8 - 1],
+                      ch_array[int(ch // 8 * 2 + 1)][ch % 8 - 1]]
     remove_list = []
     [remove_list.extend(get_prohibit_singlech(ch)) for ch in diffch_list]
     singlech_list = [_ for _ in range(1, ch_number['single'] + 1)]
