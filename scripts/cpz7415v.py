@@ -9,6 +9,7 @@ import threading
 import rospy
 from std_msgs.msg import Float64
 from std_msgs.msg import Int64
+from std_msgs.msg import Bool
 
 class cpz7415v_controller(object):
 
@@ -17,9 +18,9 @@ class cpz7415v_controller(object):
         self.rsw_id = rospy.get_param('~rsw_id')
         self.axis = rospy.get_param('~axis')
         self.node_name = rospy.get_param('~node_name')
-        self.jog_flag = 0
-        self.ptp_flag = 0
-        self.length_flag = 0
+        self.jog_flag = False
+        self.ptp_flag = False
+        self.length_flag = False
         self.length_li = []
         ###=== Create instance ===###
         try: self.mot = pyinterface.open(7415, self.rsw_id)
@@ -42,8 +43,8 @@ class cpz7415v_controller(object):
         #self.pub_position = rospy.Publisher(topic_position, Float64, queue_size=1)
         self.pub_onoff = rospy.Publisher(topic_onoff, Int64, queue_size=1)
         ###=== Define Subscriber ===###
-        self.sub_jog_switch = rospy.Subscriber(topic_jog_switch + '_cmd', Int64, self.jog_switch)
-        self.sub_ptp_switch = rospy.Subscriber(topic_ptp_switch + '_cmd', Int64, self.ptp_switch)
+        self.sub_jog_switch = rospy.Subscriber(topic_jog_switch + '_cmd', Bool, self.jog_switch)
+        self.sub_ptp_switch = rospy.Subscriber(topic_ptp_switch + '_cmd', Bool, self.ptp_switch)
         self.sub_length = rospy.Subscriber(topic_length + '_cmd', Float64, self.set_length)
 
     def jog_switch(self, q):
@@ -57,13 +58,13 @@ class cpz7415v_controller(object):
     def set_length(self, q):
         # temp
         self.length_li.append(q.data)
-        self.length_flag = 1
+        self.length_flag = True
         pass
 
     def move_jog(self):
         while not rospy.is_shutdown():
             ###=== Standby loop without pulse output ===###
-            if self.jog_flag == 0:
+            if self.jog_flag == False:
                 time.sleep(self.rate)
                 continue
             ###=== Start pulse output ===###
@@ -74,7 +75,7 @@ class cpz7415v_controller(object):
             self.mot.move(axis=self.axis, check_onoff=True)
             time.sleep(self.rate)
             ###=== Standby loop with pulse output ===###
-            while self.jog_flag == self.mot.check_move_onoff(axis=self.axis)[0]:
+            while self.jog_flag == bool(self.mot.check_move_onoff(axis=self.axis)[0]):
                 time.sleep(self.rate)
                 continue
             ###=== End of JOG operation ===###
@@ -85,7 +86,7 @@ class cpz7415v_controller(object):
     def move_ptp(self):
         while not rospy.is_shutdown():
             ###=== Standby loop without pulse output ===###
-            if self.ptp_flag == 0:
+            if self.ptp_flag == False:
                 time.sleep(self.rate)
                 continue
             ###=== Start pulse output ===###
@@ -96,21 +97,21 @@ class cpz7415v_controller(object):
             self.mot.move(axis=self.axis, check_onoff=True)
             time.sleep(self.rate)
             ###=== Standby loop with pulse output ===###
-            while self.ptp_flag == self.mot.check_move_onoff(axis=self.axis)[0]:
+            while self.ptp_flag == bool(self.mot.check_move_onoff(axis=self.axis)[0]):
                 time.sleep(self.rate)
-                self.ptp_flag = 0
+                self.ptp_flag = False
                 continue
 
     def output_length(self):
         while not rospy.is_shutdown():
             ###=== Standby loop for set length ===###
-            if self.length_flag == 0:
+            if self.length_flag == False:
                 time.sleep(self.rate)
                 continue
             ###=== set length ===###
             self.mot.set_length(axis=self.axis, length=self.length_li)
             self.length_li = []
-            self.length_flag = 0
+            self.length_flag = False
             continue
 
     def check_move_onoff(self):
@@ -118,13 +119,13 @@ class cpz7415v_controller(object):
         self.pub_onoff.publish(self.mot.check_move_onoff(axis=self.axis)[0])
         while not rospy.is_shutdown():
             ###=== Standby loop without pulse output ===###
-            if self.mot.check_move_onoff(axis=self.axis)[0] == 0:
+            if bool(self.mot.check_move_onoff(axis=self.axis)[0]) == False:
                 time.sleep(self.rate)
                 continue
             ###=== publish onoff ===###
             self.pub_onoff.publish(self.mot.check_move_onoff(axis=self.axis)[0])
             ###=== Standby loop with pulse output ===###
-            while self.mot.check_move_onoff(axis=self.axis)[0] == 1:
+            while bool(self.mot.check_move_onoff(axis=self.axis)[0]) == True:
                 time.sleep(self.rate)
                 continue
             ###=== publish onoff ===###
