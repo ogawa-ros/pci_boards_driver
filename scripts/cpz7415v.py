@@ -41,7 +41,7 @@ class cpz7415v_controller(object):
         #self.pub_switch = rospy.Publisher(topic_switch, Int64, queue_size=1)
         #self.pub_speed = rospy.Publisher(topic_speed, Float64, queue_size=1)
         #self.pub_position = rospy.Publisher(topic_position, Float64, queue_size=1)
-        self.pub_onoff = rospy.Publisher(topic_onoff, Int64, queue_size=1)
+        self.pub_onoff = rospy.Publisher(topic_onoff, Bool, queue_size=1)
         ###=== Define Subscriber ===###
         self.sub_jog_switch = rospy.Subscriber(topic_jog_switch + '_cmd', Bool, self.jog_switch)
         self.sub_ptp_switch = rospy.Subscriber(topic_ptp_switch + '_cmd', Bool, self.ptp_switch)
@@ -123,13 +123,13 @@ class cpz7415v_controller(object):
                 time.sleep(self.rate)
                 continue
             ###=== publish onoff ===###
-            self.pub_onoff.publish(self.mot.check_move_onoff(axis=self.axis)[0])
+            self.pub_onoff.publish(bool(self.mot.check_move_onoff(axis=self.axis)[0]))
             ###=== Standby loop with pulse output ===###
             while bool(self.mot.check_move_onoff(axis=self.axis)[0]) == True:
                 time.sleep(self.rate)
                 continue
             ###=== publish onoff ===###
-            self.pub_onoff.publish(self.mot.check_move_onoff(axis=self.axis)[0])
+            self.pub_onoff.publish(bool(self.mot.check_move_onoff(axis=self.axis)[0]))
             continue
 
     def start_thread_ROS(self):
