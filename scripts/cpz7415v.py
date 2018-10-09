@@ -33,9 +33,9 @@ class cpz7415v_controller(object):
         if self.mot.move_mode[self.axis] == 'JOG': pass
         else: self.mot.move_to_home(axis=self.axis)
         ###=== Define topic ===###
-        topic_jog_switch = '/{0}_rsw{1}_{2}_jog_onoff'.format(self.node_name, self.rsw_id, self.axis)
-        topic_ptp_switch = '/{0}_rsw{1}_{2}_ptp_onoff'.format(self.node_name, self.rsw_id, self.axis)
-        topic_length = '/{0}_rsw{1}_{2}_length'.format(self.node_name, self.rsw_id, self.axis)
+        topic_jog_onoff_cmd = '/{0}_rsw{1}_{2}_jog_onoff_cmd'.format(self.node_name, self.rsw_id, self.axis)
+        topic_ptp_onoff_cmd = '/{0}_rsw{1}_{2}_ptp_onoff_cmd'.format(self.node_name, self.rsw_id, self.axis)
+        topic_length_cmd = '/{0}_rsw{1}_{2}_length_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_onoff = '/{0}_rsw{1}_{2}_onoff'.format(self.node_name, self.rsw_id, self.axis)
         ###=== Define Publisher ===###
         #self.pub_switch = rospy.Publisher(topic_switch, Int64, queue_size=1)
@@ -43,9 +43,9 @@ class cpz7415v_controller(object):
         #self.pub_position = rospy.Publisher(topic_position, Float64, queue_size=1)
         self.pub_onoff = rospy.Publisher(topic_onoff, Bool, queue_size=1)
         ###=== Define Subscriber ===###
-        self.sub_jog_switch = rospy.Subscriber(topic_jog_switch + '_cmd', Bool, self.jog_switch)
-        self.sub_ptp_switch = rospy.Subscriber(topic_ptp_switch + '_cmd', Bool, self.ptp_switch)
-        self.sub_length = rospy.Subscriber(topic_length + '_cmd', Float64, self.set_length)
+        self.sub_jog_switch = rospy.Subscriber(topic_jog_onoff_cmd, Bool, self.jog_switch)
+        self.sub_ptp_switch = rospy.Subscriber(topic_ptp_onoff_cmd, Bool, self.ptp_switch)
+        self.sub_length = rospy.Subscriber(topic_length_cmd, Float64, self.set_length)
 
     def jog_switch(self, q):
         self.jog_flag = q.data
@@ -56,7 +56,6 @@ class cpz7415v_controller(object):
         return
 
     def set_length(self, q):
-        # temp
         self.length_li.append(q.data)
         self.length_flag = True
         pass
@@ -115,7 +114,6 @@ class cpz7415v_controller(object):
             continue
 
     def check_move_onoff(self):
-        #temp
         self.pub_onoff.publish(self.mot.check_move_onoff(axis=self.axis)[0])
         while not rospy.is_shutdown():
             ###=== Standby loop without pulse output ===###
