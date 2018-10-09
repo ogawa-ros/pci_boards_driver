@@ -33,8 +33,8 @@ class cpz7415v_controller(object):
         if self.mot.move_mode[self.axis] == 'JOG': pass
         else: self.mot.move_to_home(axis=self.axis)
         ###=== Define topic ===
-        topic_jog_switch = '{0}_rsw{1}_{2}_jog_switch'.format(self.node_name, self.rsw_id, self.axis)
-        topic_ptp_switch = '{0}_rsw{1}_{2}_ptp_switch'.format(self.node_name, self.rsw_id, self.axis)
+        topic_jog_switch = '{0}_rsw{1}_{2}_jog_onoff'.format(self.node_name, self.rsw_id, self.axis)
+        topic_ptp_switch = '{0}_rsw{1}_{2}_ptp_onoff'.format(self.node_name, self.rsw_id, self.axis)
         topic_length = '{0}_rsw{1}_{2}_length'.format(self.node_name, self.rsw_id, self.axis)
         topic_onoff = '{0}_rsw{1}_{2}_onoff'.format(self.node_name, self.rsw_id, self.axis)
         ###=== Define Publisher ===###
