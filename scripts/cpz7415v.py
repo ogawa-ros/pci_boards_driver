@@ -32,11 +32,11 @@ class cpz7415v_controller(object):
         self.mot.initializer(axis=self.axis, mode=['JOG'])
         if self.mot.move_mode[self.axis] == 'JOG': pass
         else: self.mot.move_to_home(axis=self.axis)
-        ###=== Define topic ===
-        topic_jog_switch = '{0}_rsw{1}_{2}_jog_onoff'.format(self.node_name, self.rsw_id, self.axis)
-        topic_ptp_switch = '{0}_rsw{1}_{2}_ptp_onoff'.format(self.node_name, self.rsw_id, self.axis)
-        topic_length = '{0}_rsw{1}_{2}_length'.format(self.node_name, self.rsw_id, self.axis)
-        topic_onoff = '{0}_rsw{1}_{2}_onoff'.format(self.node_name, self.rsw_id, self.axis)
+        ###=== Define topic ===###
+        topic_jog_switch = '/{0}_rsw{1}_{2}_jog_onoff'.format(self.node_name, self.rsw_id, self.axis)
+        topic_ptp_switch = '/{0}_rsw{1}_{2}_ptp_onoff'.format(self.node_name, self.rsw_id, self.axis)
+        topic_length = '/{0}_rsw{1}_{2}_length'.format(self.node_name, self.rsw_id, self.axis)
+        topic_onoff = '/{0}_rsw{1}_{2}_onoff'.format(self.node_name, self.rsw_id, self.axis)
         ###=== Define Publisher ===###
         #self.pub_switch = rospy.Publisher(topic_switch, Int64, queue_size=1)
         #self.pub_speed = rospy.Publisher(topic_speed, Float64, queue_size=1)
