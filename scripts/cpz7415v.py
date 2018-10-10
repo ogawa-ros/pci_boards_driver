@@ -20,8 +20,9 @@ class cpz7415v_controller(object):
         self.node_name = rospy.get_param('~node_name')
         self.jog_flag = False
         self.ptp_flag = False
-        self.length_flag = False
-        self.length_li = []
+        self.pulse_num_cmd_flag = False
+        self.pulse_num_flag = False
+        self.pulse_num_cmd_li = []
         ###=== Create instance ===###
         try: self.mot = pyinterface.open(7415, self.rsw_id)
         except OSError as e:
@@ -35,17 +36,17 @@ class cpz7415v_controller(object):
         ###=== Define topic ===###
         topic_jog_onoff_cmd = '/{0}_rsw{1}_{2}_jog_onoff_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_ptp_onoff_cmd = '/{0}_rsw{1}_{2}_ptp_onoff_cmd'.format(self.node_name, self.rsw_id, self.axis)
-        topic_length_cmd = '/{0}_rsw{1}_{2}_length_cmd'.format(self.node_name, self.rsw_id, self.axis)
+        topic_pulse_num_cmd = '/{0}_rsw{1}_{2}_pulse_num_cmd'.format(self.node_name, self.rsw_id, self.axis)
+        topic_pulse_num = '/{0}_rsw{1}_{2}_pulse_num'.format(self.node_name, self.rsw_id, self.axis)
         topic_onoff = '/{0}_rsw{1}_{2}_onoff'.format(self.node_name, self.rsw_id, self.axis)
         ###=== Define Publisher ===###
-        #self.pub_switch = rospy.Publisher(topic_switch, Int64, queue_size=1)
-        #self.pub_speed = rospy.Publisher(topic_speed, Float64, queue_size=1)
-        #self.pub_position = rospy.Publisher(topic_position, Float64, queue_size=1)
+        self.pub_pulse_num = rospy.Publisher(topic_pulse_num, Int64, queue_size=1)
         self.pub_onoff = rospy.Publisher(topic_onoff, Bool, queue_size=1)
         ###=== Define Subscriber ===###
         self.sub_jog_switch = rospy.Subscriber(topic_jog_onoff_cmd, Bool, self.jog_switch)
         self.sub_ptp_switch = rospy.Subscriber(topic_ptp_onoff_cmd, Bool, self.ptp_switch)
-        self.sub_length = rospy.Subscriber(topic_length_cmd, Float64, self.set_length)
+        self.sub_pulse_num_cmd = rospy.Subscriber(topic_pulse_num_cmd, Int64, self.pulse_num_cmd_switch)
+        self.sub_pulse_num = rospy.Subscriber(topic_pulse_num, Bool, self.pulse_num_switch)
 
     def jog_switch(self, q):
         self.jog_flag = q.data
@@ -55,10 +56,14 @@ class cpz7415v_controller(object):
         self.ptp_flag = q.data
         return
 
-    def set_length(self, q):
-        self.length_li.append(q.data)
-        self.length_flag = True
+    def pulse_num_cmd_switch(self, q):
+        self.pulse_num_cmd_li.append(q.data)
+        self.pulse_num_cmd_flag = True
         pass
+
+    def pulse_num_switch(self, q):
+        self.pulse_num_flag = q.data
+        return
 
     def move_jog(self):
         while not rospy.is_shutdown():
@@ -101,16 +106,29 @@ class cpz7415v_controller(object):
                 self.ptp_flag = False
                 continue
 
-    def output_length(self):
+    def set_pulse_num(self):
         while not rospy.is_shutdown():
-            ###=== Standby loop for set length ===###
-            if self.length_flag == False:
+            ###=== Standby loop for set pulse_num ===###
+            if self.pulse_num_cmd_flag == False:
                 time.sleep(self.rate)
                 continue
-            ###=== set length ===###
-            self.mot.set_length(axis=self.axis, length=self.length_li)
-            self.length_li = []
-            self.length_flag = False
+            ###=== set pulse_num ===###
+            self.mot.set_pulse_num(axis=self.axis, pls_num=self.pulse_nun_cmd_li)
+            self.pulse_num_flag = True
+            self.pulse_num_cmd_li = []
+            self.pulse_num_cmd_flag = False
+            continue
+
+    def get_pulse_num(self):
+        while not rospy.is_shutdown():
+            ###=== Standby loop for get pulse_num ===###
+            if self.pulse_num_flag == False:
+                time.sleep(self.rate)
+                continue
+            ###=== publish pulse_num ===###
+            pulse_num = self.mot.get_pulse_num(axis=self.axis)[0]
+            self.pub_pulse_num.publish(pulse_num)
+            self.pulse_num_flag = False
             continue
 
     def check_move_onoff(self):
@@ -133,16 +151,19 @@ class cpz7415v_controller(object):
     def start_thread_ROS(self):
         th1 = threading.Thread(target=self.move_jog)
         th2 = threading.Thread(target=self.move_ptp)
-        th3 = threading.Thread(target=self.output_length)
-        th4 = threading.Thread(target=self.check_move_onoff)
+        th3 = threading.Thread(target=self.set_pulse_num)
+        th4 = threading.Thread(target=self.get_pulse_num)
+        th5 = threading.Thread(target=self.check_move_onoff)
         th1.setDaemon(True)
         th2.setDaemon(True)
         th3.setDaemon(True)
         th4.setDaemon(True)
+        th5.setDaemon(True)
         th1.start()
         th2.start()
         th3.start()
         th4.start()
+        th5.start()
         return
 
 if __name__ == '__main__':
