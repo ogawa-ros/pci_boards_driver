@@ -52,7 +52,7 @@ class cpz7415v_controller(object):
         self.sub_ptp_switch = rospy.Subscriber(topic_ptp_onoff_cmd, Bool, self.ptp_switch)
         self.sub_pulse_num_cmd = rospy.Subscriber(topic_pulse_num_cmd, Int64, self.pulse_num_cmd_switch)
         self.sub_pulse_num_cmd = rospy.Subscriber(topic_fh_speed_cmd, Int64, self.fh_speed_cmd_switch)
-        self.sub_pulse_num = rospy.Subscriber(topic_pulse_num, Bool, self.pulse_num_switch)
+        self.sub_pulse_num = rospy.Subscriber(topic_pulse_num, Int64, self.pulse_num_switch)
 
     def jog_switch(self, q):
         self.jog_flag = q.data
