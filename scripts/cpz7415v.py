@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+Stand-by#! /usr/bin/env python3
 
 import sys
 import time
@@ -22,6 +22,8 @@ class cpz7415v_controller(object):
         self.ptp_flag = False
         self.pulse_num_cmd_flag = False
         self.pulse_num_flag = False
+        self.fh_speed_cmd_flag = False
+        self.fh_speed_flag = False
         self.pulse_num_cmd_li = []
         ###=== Create instance ===###
         try: self.mot = pyinterface.open(7415, self.rsw_id)
@@ -38,14 +40,18 @@ class cpz7415v_controller(object):
         topic_ptp_onoff_cmd = '/{0}_rsw{1}_{2}_ptp_onoff_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_pulse_num_cmd = '/{0}_rsw{1}_{2}_pulse_num_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_pulse_num = '/{0}_rsw{1}_{2}_pulse_num'.format(self.node_name, self.rsw_id, self.axis)
+        topic_fh_speed_cmd = '/{0}_rsw{1}_{2}_fh_speed'.format(self.node_name, self.rsw_id, self.axis)
+        topic_fh_speed = '/{0}_rsw{1}_{2}_fh_speed_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_onoff = '/{0}_rsw{1}_{2}_onoff'.format(self.node_name, self.rsw_id, self.axis)
         ###=== Define Publisher ===###
         self.pub_pulse_num = rospy.Publisher(topic_pulse_num, Int64, queue_size=1)
+        self.pub_fh_speed = rospy.Publisher(topic_fh_speed, Int64, queue_size=1)
         self.pub_onoff = rospy.Publisher(topic_onoff, Bool, queue_size=1)
         ###=== Define Subscriber ===###
         self.sub_jog_switch = rospy.Subscriber(topic_jog_onoff_cmd, Bool, self.jog_switch)
         self.sub_ptp_switch = rospy.Subscriber(topic_ptp_onoff_cmd, Bool, self.ptp_switch)
         self.sub_pulse_num_cmd = rospy.Subscriber(topic_pulse_num_cmd, Int64, self.pulse_num_cmd_switch)
+        self.sub_pulse_num_cmd = rospy.Subscriber(topic_fh_speed_cmd, Int64, self.fh_speed_cmd_switch)
         self.sub_pulse_num = rospy.Subscriber(topic_pulse_num, Bool, self.pulse_num_switch)
 
     def jog_switch(self, q):
@@ -59,15 +65,24 @@ class cpz7415v_controller(object):
     def pulse_num_cmd_switch(self, q):
         self.pulse_num_cmd_li.append(q.data)
         self.pulse_num_cmd_flag = True
-        pass
+        return
 
     def pulse_num_switch(self, q):
         self.pulse_num_flag = q.data
         return
 
+    def fh_speed_cmd_switch(self, q):
+        self.fh_speed_cmd_li.append(q.data)
+        self.fh_speed_cmd_flag = True
+        return
+
+    def fh_speed_switch(self, q):
+        self.fh_speed_flag = True
+        return
+
     def move_jog(self):
         while not rospy.is_shutdown():
-            ###=== Standby loop without pulse output ===###
+            ###=== Stand-by loop without pulse output ===###
             if self.jog_flag == False:
                 time.sleep(self.rate)
                 continue
@@ -78,7 +93,7 @@ class cpz7415v_controller(object):
                 time.sleep(self.rate)
             self.mot.move(axis=self.axis, check_onoff=True)
             time.sleep(self.rate)
-            ###=== Standby loop with pulse output ===###
+            ###=== Stand-by loop with pulse output ===###
             while self.jog_flag == bool(self.mot.check_move_onoff(axis=self.axis)[0]):
                 time.sleep(self.rate)
                 continue
@@ -89,7 +104,7 @@ class cpz7415v_controller(object):
 
     def move_ptp(self):
         while not rospy.is_shutdown():
-            ###=== Standby loop without pulse output ===###
+            ###=== Stand-by loop without pulse output ===###
             if self.ptp_flag == False:
                 time.sleep(self.rate)
                 continue
@@ -100,7 +115,7 @@ class cpz7415v_controller(object):
                 time.sleep(self.rate)
             self.mot.move(axis=self.axis, check_onoff=True)
             time.sleep(self.rate)
-            ###=== Standby loop with pulse output ===###
+            ###=== Stand-by loop with pulse output ===###
             while self.ptp_flag == bool(self.mot.check_move_onoff(axis=self.axis)[0]):
                 time.sleep(self.rate)
                 self.ptp_flag = False
@@ -108,12 +123,12 @@ class cpz7415v_controller(object):
 
     def set_pulse_num(self):
         while not rospy.is_shutdown():
-            ###=== Standby loop for set pulse_num ===###
+            ###=== Stand-by loop for set pulse_num ===###
             if self.pulse_num_cmd_flag == False:
                 time.sleep(self.rate)
                 continue
             ###=== set pulse_num ===###
-            self.mot.set_pulse_num(axis=self.axis, pls_num=self.pulse_nun_cmd_li)
+            self.mot.set_pulse_num(axis=self.axis, pls_num=self.pulse_num_cmd_li)
             self.pulse_num_flag = True
             self.pulse_num_cmd_li = []
             self.pulse_num_cmd_flag = False
@@ -121,7 +136,7 @@ class cpz7415v_controller(object):
 
     def get_pulse_num(self):
         while not rospy.is_shutdown():
-            ###=== Standby loop for get pulse_num ===###
+            ###=== Stand-by loop for get pulse_num ===###
             if self.pulse_num_flag == False:
                 time.sleep(self.rate)
                 continue
@@ -131,16 +146,41 @@ class cpz7415v_controller(object):
             self.pulse_num_flag = False
             continue
 
+    def set_fh_speed(self):
+        while not rospy.is_shutdown():
+            ###=== Stand-by loop for set fh_speed ===###
+            if self.fh_speed_cmd_flag == False:
+                time.sleep(self.rate)
+                continue
+            ###=== set fh_speed ===###
+            self.mot.set_fh_speed(axis=self.axis, fh_spd=self.fh_speed_cmd_li)
+            self.fh_speed_flag = True
+            self.fh_speed_cmd_li = []
+            self.fh_speed_cmd_flag = False
+            continue
+
+    def get_fh_speed(self):
+        while not rospy.is_shutdown():
+            ###=== Stand-by loop for get fh_speed ===###
+            if self.fh_speed_flag == False:
+                time.sleep(self.rate)
+                continue
+            ###=== publish fh_speed ===###
+            fh_speed = self.mot.get_fh_speed(axis=self.axis)[0]
+            self.pub_fh_speed.publish(fh_speed)
+            self.fh_speed_flag = False
+            continue
+
     def check_move_onoff(self):
         self.pub_onoff.publish(self.mot.check_move_onoff(axis=self.axis)[0])
         while not rospy.is_shutdown():
-            ###=== Standby loop without pulse output ===###
+            ###=== Stand-by loop without pulse output ===###
             if bool(self.mot.check_move_onoff(axis=self.axis)[0]) == False:
                 time.sleep(self.rate)
                 continue
             ###=== publish onoff ===###
             self.pub_onoff.publish(bool(self.mot.check_move_onoff(axis=self.axis)[0]))
-            ###=== Standby loop with pulse output ===###
+            ###=== Stand-by loop with pulse output ===###
             while bool(self.mot.check_move_onoff(axis=self.axis)[0]) == True:
                 time.sleep(self.rate)
                 continue
@@ -153,17 +193,23 @@ class cpz7415v_controller(object):
         th2 = threading.Thread(target=self.move_ptp)
         th3 = threading.Thread(target=self.set_pulse_num)
         th4 = threading.Thread(target=self.get_pulse_num)
-        th5 = threading.Thread(target=self.check_move_onoff)
+        th5 = threading.Thread(target=self.set_fh_speed)
+        th6 = threading.Thread(target=self.get_fh_speed)
+        th7 = threading.Thread(target=self.check_move_onoff)
         th1.setDaemon(True)
         th2.setDaemon(True)
         th3.setDaemon(True)
         th4.setDaemon(True)
         th5.setDaemon(True)
+        th6.setDaemon(True)
+        th7.setDaemon(True)
         th1.start()
         th2.start()
         th3.start()
         th4.start()
         th5.start()
+        th6.start()
+        th7.start()
         return
 
 if __name__ == '__main__':
