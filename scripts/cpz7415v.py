@@ -25,6 +25,7 @@ class cpz7415v_controller(object):
         self.fh_speed_cmd_flag = False
         self.fh_speed_flag = False
         self.pulse_num_cmd_li = []
+        self.fh_speed_cmd_li = []
         ###=== Create instance ===###
         try: self.mot = pyinterface.open(7415, self.rsw_id)
         except OSError as e:
