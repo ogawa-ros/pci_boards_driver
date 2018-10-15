@@ -132,7 +132,7 @@ class cpz7415v_controller(object):
             self.pulse_num_cmd_flag = False
             self.mot.set_pulse_num(axis=self.axis, pls_num=self.pulse_num_cmd_li)
             self.mot.get_pulse_num(axis=self.axis)[0]
-            self.pub_pulse_num_publish(pulse_num)
+            self.pub_pulse_num.publish(pulse_num)
             #self.pulse_num_flag = True
             self.pulse_num_cmd_li = []
             time.sleep(self.rate)
