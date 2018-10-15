@@ -5,11 +5,11 @@
     <param name="~rsw_id" value="0" />
     <param name="~axis" value="x" />
     <param name="~node_name" value="cpz7415v" />
-    <param name="~mode" value="['PTP']" />
-    <param name="~pls_num" value="[100]" />
-    <param name="~mag" value="[2999]" />
-    <param name="~fl_spd" value="[250]" />
-    <param name="~fh_spd" value="[30000]" />
+    <param name="~mode" value='PTP' />
+    <param name="~pls_num" value="100" />
+    <param name="~mag" value="2999" />
+    <param name="~fl_spd" value="250" />
+    <param name="~fh_spd" value="30000" />
   </node>
 
 </launch>

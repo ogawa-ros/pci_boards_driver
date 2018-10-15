@@ -38,11 +38,11 @@ class cpz7415v_controller(object):
             sys.exit()
         ###=== Initialize the board ===###
         self.mot.initializer(axis=self.axis)
-        self.mot.set_mode(mode=self.mode, axis=self.axis)
-        self.mot.set_pulse_num(pls_num=self.pls_num, axis=self.axis)
-        self.mot.set_magnification(mag=self.mag, axis=self.axis)
-        self.mot.set_fl_speed(fl_spd=self.fl_spd, axis=self.axis)
-        self.mot.set_fh_speed(fh_spd=self.fh_spd, axis=self.axis)
+        self.mot.set_mode(mode=[self.mode], axis=self.axis)
+        self.mot.set_pulse_num(pls_num=[self.pls_num], axis=self.axis)
+        self.mot.set_magnification(mag=[self.mag], axis=self.axis)
+        self.mot.set_fl_speed(fl_spd=[self.fl_spd], axis=self.axis)
+        self.mot.set_fh_speed(fh_spd=[self.fh_spd], axis=self.axis)
     #=temp=
         self.mot.set_param(name='prur', data=[1000, 1000, 1000, 1000], axis=self.axis)
         self.mot.set_param(name='prdr', data=[1000, 1000, 1000, 1000], axis=self.axis)
