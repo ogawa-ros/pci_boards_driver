@@ -18,6 +18,7 @@ class cpz7415v_controller(object):
         self.rsw_id = rospy.get_param('~rsw_id')
         self.axis = rospy.get_param('~axis')
         self.node_name = rospy.get_param('~node_name')
+        self.move_mode = rospy.get_param('~move_mode')
         self.jog_flag = False
         self.ptp_flag = False
         self.pulse_num_cmd_flag = False
@@ -34,9 +35,16 @@ class cpz7415v_controller(object):
                          format(self.node_name, self.rsw_id))
             sys.exit()
         ###=== Initialize the board ===###
-        self.mot.initializer(axis=self.axis, mode=['JOG'])
-        if self.mot.move_mode[self.axis] == 'JOG': pass
-        else: self.mot.move_to_home(axis=self.axis)
+        self.mot.initializer(axis=self.axis)
+        self.mot.set_mode(mode=self.mode, axis=self.axis)
+        self.mot.set_pulse_num(pls_num=self.pls_num, axis=self.axis)
+        self.mot.set_magnification(mag=self.mag, axis=self.axis)
+        self.mot.set_fl_speed(fl_spd=self.fl_spd, axis=self.axis)
+        self.mot.set_fh_speed(fh_spd=self.fh_spd, axis=self.axis)
+    #=temp=
+        self.mot.set_param(name='prur', data=[1000, 1000, 1000, 1000], axis=self.axis)
+        self.mot.set_param(name='prdr', data=[1000, 1000, 1000, 1000], axis=self.axis)
+    #======
         ###=== Define topic ===###
         topic_jog_onoff_cmd = '/{0}_rsw{1}_{2}_jog_onoff_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_ptp_onoff_cmd = '/{0}_rsw{1}_{2}_ptp_onoff_cmd'.format(self.node_name, self.rsw_id, self.axis)
