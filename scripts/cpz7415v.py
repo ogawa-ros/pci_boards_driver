@@ -41,8 +41,8 @@ class cpz7415v_controller(object):
         topic_ptp_onoff_cmd = '/{0}_rsw{1}_{2}_ptp_onoff_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_pulse_num_cmd = '/{0}_rsw{1}_{2}_pulse_num_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_pulse_num = '/{0}_rsw{1}_{2}_pulse_num'.format(self.node_name, self.rsw_id, self.axis)
-        topic_fh_speed_cmd = '/{0}_rsw{1}_{2}_fh_speed'.format(self.node_name, self.rsw_id, self.axis)
-        topic_fh_speed = '/{0}_rsw{1}_{2}_fh_speed_cmd'.format(self.node_name, self.rsw_id, self.axis)
+        topic_fh_speed_cmd = '/{0}_rsw{1}_{2}_fh_speed_cmd'.format(self.node_name, self.rsw_id, self.axis)
+        topic_fh_speed = '/{0}_rsw{1}_{2}_fh_speed'.format(self.node_name, self.rsw_id, self.axis)
         topic_onoff = '/{0}_rsw{1}_{2}_onoff'.format(self.node_name, self.rsw_id, self.axis)
         ###=== Define Publisher ===###
         self.pub_pulse_num = rospy.Publisher(topic_pulse_num, Int64, queue_size=1)
