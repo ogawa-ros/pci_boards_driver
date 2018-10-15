@@ -24,6 +24,7 @@ class cpz7415v_controller(object):
         self.pulse_num_flag = False
         self.fh_speed_cmd_flag = False
         self.fh_speed_flag = False
+        self.move_to_home_flag = False
         self.pulse_num_cmd_li = []
         self.fh_speed_cmd_li = []
         ###=== Create instance ===###
@@ -44,6 +45,7 @@ class cpz7415v_controller(object):
         topic_fh_speed_cmd = '/{0}_rsw{1}_{2}_fh_speed_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_fh_speed = '/{0}_rsw{1}_{2}_fh_speed'.format(self.node_name, self.rsw_id, self.axis)
         topic_onoff = '/{0}_rsw{1}_{2}_onoff'.format(self.node_name, self.rsw_id, self.axis)
+        topic_move_to_home = '/{0}_rsw{1}_{2}_move_to_flag'.format(self.node_name, self.rsw_id, self.axis)
         ###=== Define Publisher ===###
         self.pub_pulse_num = rospy.Publisher(topic_pulse_num, Int64, queue_size=1)
         self.pub_fh_speed = rospy.Publisher(topic_fh_speed, Int64, queue_size=1)
@@ -54,6 +56,7 @@ class cpz7415v_controller(object):
         self.sub_pulse_num_cmd = rospy.Subscriber(topic_pulse_num_cmd, Int64, self.pulse_num_cmd_switch)
         self.sub_fh_speed_cmd = rospy.Subscriber(topic_fh_speed_cmd, Int64, self.fh_speed_cmd_switch)
         self.sub_pulse_num = rospy.Subscriber(topic_pulse_num, Int64, self.pulse_num_switch)
+        self.sub_move_to_home = rospy.Subscriber(topic_move_to_home, Bool, self.move_to_home_switch)
 
     def jog_switch(self, q):
         self.jog_flag = q.data
@@ -79,6 +82,10 @@ class cpz7415v_controller(object):
 
     def fh_speed_switch(self, q):
         self.fh_speed_flag = True
+        return
+
+    def move_to_home_switch(self, q):
+        self.move_to_home_flag = q.data
         return
 
     def move_jog(self):
@@ -172,6 +179,18 @@ class cpz7415v_controller(object):
             self.pub_fh_speed.publish(fh_speed)
             time.sleep(self.rate)
             self.fh_speed_flag = False
+            continue
+
+    def move_to_home(self):
+        while not rospy.is_shutdown():
+            ###=== Stand-by loop for move to home ===###
+            if self.move_to_home_flag == False:
+                time.sleep(self.rate)
+                continue
+            ###=== move to home ===###
+            self.mot.move_to_home(axis=self.axis)
+            time.sleep(self.rate)
+            self.move_to_home_flag = False
             continue
 
     def check_move_onoff(self):
