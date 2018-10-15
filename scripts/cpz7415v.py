@@ -130,7 +130,7 @@ class cpz7415v_controller(object):
                 time.sleep(self.rate)
                 continue
             ###=== set pulse_num ===###
-            print(self.fh_seed_cmd_li)
+            print(self.fh_speed_cmd_li)
             self.mot.set_pulse_num(axis=self.axis, pls_num=self.pulse_num_cmd_li)
             self.pulse_num_flag = True
             self.pulse_num_cmd_li = []
