@@ -18,7 +18,9 @@ class cpz7415v_controller(object):
         self.rsw_id = rospy.get_param('~rsw_id')
         self.axis = rospy.get_param('~axis')
         self.node_name = rospy.get_param('~node_name')
-        self.mode = rospy.get_param('~move_mode')
+        self.mode = rospy.get_param('~mode')
+        print(self.mode)
+        print(type(self.mode))
         self.jog_flag = False
         self.ptp_flag = False
         self.pulse_num_cmd_flag = False
