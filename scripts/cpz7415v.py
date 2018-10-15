@@ -129,10 +129,10 @@ class cpz7415v_controller(object):
                 time.sleep(self.rate)
                 continue
             ###=== set pulse_num ===###
+            self.pulse_num_cmd_flag = False
             self.mot.set_pulse_num(axis=self.axis, pls_num=self.pulse_num_cmd_li)
             self.pulse_num_flag = True
             self.pulse_num_cmd_li = []
-            self.pulse_num_cmd_flag = False
             time.sleep(self.rate)
             continue
 
@@ -143,9 +143,9 @@ class cpz7415v_controller(object):
                 time.sleep(self.rate)
                 continue
             ###=== publish pulse_num ===###
+            self.pulse_num_flag = False
             pulse_num = self.mot.get_pulse_num(axis=self.axis)[0]
             self.pub_pulse_num.publish(pulse_num)
-            self.pulse_num_flag = False
             time.sleep(self.rate)
             continue
 
@@ -156,10 +156,10 @@ class cpz7415v_controller(object):
                 time.sleep(self.rate)
                 continue
             ###=== set fh_speed ===###
+            self.fh_speed_cmd_flag = False
             self.mot.set_fh_speed(axis=self.axis, fh_spd=self.fh_speed_cmd_li)
             self.fh_speed_flag = True
             self.fh_speed_cmd_li = []
-            self.fh_speed_cmd_flag = False
             time.sleep(self.rate)
             continue
 
@@ -170,9 +170,9 @@ class cpz7415v_controller(object):
                 time.sleep(self.rate)
                 continue
             ###=== publish fh_speed ===###
+            self.fh_speed_flag = False
             fh_speed = self.mot.get_fh_speed(axis=self.axis)[0]
             self.pub_fh_speed.publish(fh_speed)
-            self.fh_speed_flag = False
             time.sleep(self.rate)
             continue
 
