@@ -10,6 +10,8 @@
     <param name="~mag" value="2999" />
     <param name="~fl_spd" value="250" />
     <param name="~fh_spd" value="30000" />
+    <param name="~acc_rate" value="1000" />
+    <param name="~dec_rate" value="1000" />
   </node>
 
 </launch>
