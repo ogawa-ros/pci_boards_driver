@@ -219,6 +219,7 @@ class cpz7415v_controller(object):
         th5 = threading.Thread(target=self.set_fh_speed)
         th6 = threading.Thread(target=self.get_fh_speed)
         th7 = threading.Thread(target=self.check_move_onoff)
+        th8 = threading.Thread(target=self.move_to_home)
         th1.setDaemon(True)
         th2.setDaemon(True)
         th3.setDaemon(True)
@@ -226,6 +227,7 @@ class cpz7415v_controller(object):
         th5.setDaemon(True)
         th6.setDaemon(True)
         th7.setDaemon(True)
+        th8.setDaemon(True)
         th1.start()
         th2.start()
         th3.start()
@@ -233,6 +235,7 @@ class cpz7415v_controller(object):
         th5.start()
         th6.start()
         th7.start()
+        th8.start()
         return
 
 if __name__ == '__main__':
