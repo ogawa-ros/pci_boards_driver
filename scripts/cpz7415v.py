@@ -74,6 +74,7 @@ class cpz7415v_controller(object):
 
     def fh_speed_cmd_switch(self, q):
         self.fh_speed_cmd_li.append(q.data)
+        print(self.fh_speed_cmd_li)
         self.fh_speed_cmd_flag = True
         return
 
