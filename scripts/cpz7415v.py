@@ -19,6 +19,10 @@ class cpz7415v_controller(object):
         self.axis = rospy.get_param('~axis')
         self.node_name = rospy.get_param('~node_name')
         self.mode = rospy.get_param('~mode')
+        self.pls_num = rospy.get_param('~pls_num')
+        self.mag = rospy.get_param('~mag')
+        self.fl_spd = rospy.get_param('~fl_spd')
+        self.fh_spd = rospy.get_param('~fh_spd')
         print(self.mode)
         print(type(self.mode))
         self.jog_flag = False
