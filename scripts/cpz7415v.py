@@ -45,7 +45,7 @@ class cpz7415v_controller(object):
         topic_fh_speed_cmd = '/{0}_rsw{1}_{2}_fh_speed_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_fh_speed = '/{0}_rsw{1}_{2}_fh_speed'.format(self.node_name, self.rsw_id, self.axis)
         topic_onoff = '/{0}_rsw{1}_{2}_onoff'.format(self.node_name, self.rsw_id, self.axis)
-        topic_move_to_home = '/{0}_rsw{1}_{2}_move_to_flag'.format(self.node_name, self.rsw_id, self.axis)
+        topic_move_to_home = '/{0}_rsw{1}_{2}_move_to_home'.format(self.node_name, self.rsw_id, self.axis)
         ###=== Define Publisher ===###
         self.pub_pulse_num = rospy.Publisher(topic_pulse_num, Int64, queue_size=1)
         self.pub_fh_speed = rospy.Publisher(topic_fh_speed, Int64, queue_size=1)
