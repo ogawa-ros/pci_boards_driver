@@ -118,8 +118,8 @@ class cpz7415v_controller(object):
             time.sleep(self.rate)
             ###=== Stand-by loop with pulse output ===###
             while self.ptp_flag == bool(self.mot.check_move_onoff(axis=self.axis)[0]):
-                time.sleep(self.rate)
                 self.ptp_flag = False
+                time.sleep(self.rate)
                 continue
 
     def set_pulse_num(self):
@@ -133,6 +133,7 @@ class cpz7415v_controller(object):
             self.pulse_num_flag = True
             self.pulse_num_cmd_li = []
             self.pulse_num_cmd_flag = False
+            time.sleep(self.rate)
             continue
 
     def get_pulse_num(self):
@@ -145,6 +146,7 @@ class cpz7415v_controller(object):
             pulse_num = self.mot.get_pulse_num(axis=self.axis)[0]
             self.pub_pulse_num.publish(pulse_num)
             self.pulse_num_flag = False
+            time.sleep(self.rate)
             continue
 
     def set_fh_speed(self):
@@ -158,6 +160,7 @@ class cpz7415v_controller(object):
             self.fh_speed_flag = True
             self.fh_speed_cmd_li = []
             self.fh_speed_cmd_flag = False
+            time.sleep(self.rate)
             continue
 
     def get_fh_speed(self):
@@ -170,6 +173,7 @@ class cpz7415v_controller(object):
             fh_speed = self.mot.get_fh_speed(axis=self.axis)[0]
             self.pub_fh_speed.publish(fh_speed)
             self.fh_speed_flag = False
+            time.sleep(self.rate)
             continue
 
     def check_move_onoff(self):
@@ -187,6 +191,7 @@ class cpz7415v_controller(object):
                 continue
             ###=== publish onoff ===###
             self.pub_onoff.publish(bool(self.mot.check_move_onoff(axis=self.axis)[0]))
+            time.sleep(self.rate)
             continue
 
     def start_thread_ROS(self):
