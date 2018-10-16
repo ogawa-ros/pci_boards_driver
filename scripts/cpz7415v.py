@@ -48,7 +48,7 @@ class cpz7415v_controller(object):
         self.mot.set_fl_speed(fl_spd=[self.fl_spd], axis=self.axis)
         self.mot.set_fh_speed(fh_spd=[self.fh_spd], axis=self.axis)
         self.mot.set_acceleration_rate(acc_rate=[self.acc_rate], axis=self.axis)
-        self.mot.set_deceleration_rate(dec_rate=[self.dec_rete], axis=self.axis)
+        self.mot.set_deceleration_rate(dec_rate=[self.dec_rate], axis=self.axis)
         ###=== Define topic ===###
         topic_jog_onoff_cmd = '/{0}_rsw{1}_{2}_jog_onoff_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_ptp_onoff_cmd = '/{0}_rsw{1}_{2}_ptp_onoff_cmd'.format(self.node_name, self.rsw_id, self.axis)
