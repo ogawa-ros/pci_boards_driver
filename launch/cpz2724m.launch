@@ -1,0 +1,6 @@
+<launch>
+  
+  <include ns="necctrl" file="$(find necst_ros3)/launch/necctrl_cpz2724m.launch" />
+  <include ns="necopt" file="$(find necst_ros3)/launch/necopt_cpz2724m.launch" />
+
+</launch>
