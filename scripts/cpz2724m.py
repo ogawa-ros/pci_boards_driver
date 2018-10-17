@@ -22,14 +22,16 @@ class CPZ2724(object):
                         name = "cpz2724_rsw{0}/di{1}".format(self.rsw_id, ch),
                         data_class = std_msgs.msg.Bool,
                         latch = True,
-                        queue_size = 1 for ch in self.ch_list_di]
+                        queue_size = 1
+                    ) for ch in self.ch_list_di]
 
         self.sub = [rospy.Subscriber(
                         name = "cpz2724_rsw{0}/do{1}".format(self.rsw_id, ch),
                         data_class = std_msgs.msg.Bool,
                         callback = self.output_function,
                         callback_args = ch,
-                        queue_size = 1 for ch in self.ch_list_do]
+                        queue_size = 1
+                    ) for ch in self.ch_list_do]
 
         try:
             self.dio = pyinterface.open(2724, self.rsw_id)
