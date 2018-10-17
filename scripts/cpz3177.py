@@ -15,8 +15,10 @@ def select_singlediff():
     if parse(rospy.get_param('~diffch_list')) == ['']: diffch_list = []
     else: diffch_list = list(map(int, parse(rospy.get_param('~diffch_list'))))
     ch_array = numpy.arange(1, ch_number['single'] + 1, 1).reshape(8, 8)
-    get_prohibit_singlech = lambda ch: [ch_array[int((ch - 1) / 8 * 2)][ch % 8 -1],
-                                        ch_array[int((ch - 1) / 8 * 2 + 1)][ch % 8 - 1]]
+    def get_prohibit_singlech(ch):
+        if ch in [(_ + 1) * 8 for _ in range(4)]: return [ch * 2 - 8, ch * 2]
+        else: return [ch_array[int(ch // 8 * 2)][ch % 8 - 1],
+                      ch_array[int(ch // 8 * 2 + 1)][ch % 8 - 1]]
     remove_list = []
     [remove_list.extend(get_prohibit_singlech(ch)) for ch in diffch_list]
     singlech_list = [_ for _ in range(1, ch_number['single'] + 1)]
@@ -35,7 +37,7 @@ if __name__ == '__main__':
     rospy.init_node('cpz3177')
     rate = rospy.get_param('~rate')
     rsw_id = rospy.get_param('~rsw_id')
-    node_name = rospy.get_param('~node_name')    
+    node_name = 'cpz3177'
     
     topic_list = select_singlediff()
     pub_list = [rospy.Publisher('{0}_rsw{1}_{2}{3}'.format(node_name, rsw_id, mode, ch), Float64, queue_size=1)
