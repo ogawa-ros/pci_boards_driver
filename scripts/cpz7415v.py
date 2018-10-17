@@ -14,6 +14,7 @@ from std_msgs.msg import Bool
 class cpz7415v_controller(object):
 
     def __init__(self):
+        ###=== Define member-variables ===###
         self.rate = rospy.get_param('~rate')
         self.rsw_id = rospy.get_param('~rsw_id')
         self.axis = rospy.get_param('~axis')
