@@ -13,13 +13,18 @@ import pyinterface
 
 
 class CPZ2724(object):
+    
+    flag = {
+            "1_16" : False,
+            "17_32" : False,
+            }
 
     ch_list = ["01","02","03","04","05","06","07","08","09","10",
                 "11","12","13","14","15","16","17","18","19","20",
                 "21","22","23","24","25","26","27","28","29","30",
                 "31","32"]
     ch_list_byte = []
-    ch_list_word = ["1_16, 17_32"]
+    ch_list_word = ["1_16", "17_32"]
     ch_list_dword = []
     
     def __init__(self):
@@ -73,7 +78,13 @@ class CPZ2724(object):
         pass
 
     def output_point(self, req, ch):
-        self.dio.output_point([req.data] ,int(ch))
+        if int(ch) <= 16:
+            if not self.flag["1_16"]:
+                self.dio.output_point([req.data] ,int(ch))
+        elif int(ch) >= 17:
+            if not self.flag["17_32"]:
+                self.dio.output_point([req.data] ,int(ch))
+        else: pass
         return
 
     def output_byte(self, req, ch):
@@ -81,7 +92,9 @@ class CPZ2724(object):
         return
 
     def output_word(self, req, ch):
+        self.flag[ch] = True
         self.dio.output_word("OUT{}".format(ch), req.data)
+        self.flag[ch] = False
         return
 
     def output_dword(self, req, ch):
