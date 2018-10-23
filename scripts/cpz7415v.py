@@ -35,12 +35,12 @@ class cpz7415v_controller(object):
             sys.exit()
         ###=== Setting the board ===###
         self.mot.initialize(axis=self.axis)
-        self.mot.drive.pMotion[self.mode]['clock'][self.axis] = rospy.get_param('~clock')
-        self.mot.drive.pMotion[self.mode]['position'][self.axis] = rospy.get_param('~position')
-        self.mot.drive.pMotion[self.mode]['fl_speed'][self.axis] = rospy.get_param('~fl_speed')
-        self.mot.drive.pMotion[self.mode]['fh_speed'][self.axis] = rospy.get_param('~fh_speed')
-        self.mot.drive.pMotion[self.mode]['acc_rate'][self.axis] = rospy.get_param('~acc_rate')
-        self.mot.drive.pMotion[self.mode]['dec_rate'][self.axis] = rospy.get_param('~dec_rate')
+        self.mot.driver.pMotion[self.mode]['clock'][self.axis] = rospy.get_param('~clock')
+        self.mot.driver.pMotion[self.mode]['position'][self.axis] = rospy.get_param('~position')
+        self.mot.driver.pMotion[self.mode]['fl_speed'][self.axis] = rospy.get_param('~fl_speed')
+        self.mot.driver.pMotion[self.mode]['fh_speed'][self.axis] = rospy.get_param('~fh_speed')
+        self.mot.driver.pMotion[self.mode]['acc_rate'][self.axis] = rospy.get_param('~acc_rate')
+        self.mot.driver.pMotion[self.mode]['dec_rate'][self.axis] = rospy.get_param('~dec_rate')
         self.mot.set_motion(axis=self.axis, mode=self.mode)
         ###=== Define topic ===###
         topic_ptp_onoff_cmd = '/{0}_rsw{1}_{2}_ptp_onoff_cmd'.format(self.node_name, self.rsw_id, self.axis)
