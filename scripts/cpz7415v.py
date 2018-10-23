@@ -115,7 +115,6 @@ class cpz7415v_controller(object):
             ###=== set speed ===###
             self.mot.change_speed(axis=self.axis, spd=self.speed_cmd_li)
             self.target_speed = self.speed_cmd_li[0]
-            print(self.speed_cmd_li[0])
             self.speed_cmd_li = []
             self.speed_cmd_flag = False
             continue
@@ -123,13 +122,13 @@ class cpz7415v_controller(object):
     def get_speed(self):
         while not rospy.is_shutdown():
             ###=== Stand-by loop for get speed ===###
-            while self.target_speed == self.mot.read_speed(axis=self.axis)[0]:
+            if self.target_speed == self.mot.read_speed(axis=self.axis)[0]:
                 time.sleep(self.rate)
                 continue
             ###=== publish speed ===###
             speed = self.mot.read_speed(axis=self.axis)[0]
             self.pub_speed.publish(speed)
-            time.sleep(0.1)
+            time.sleep(self.rate)
             continue
 
     def move_to_home(self):
