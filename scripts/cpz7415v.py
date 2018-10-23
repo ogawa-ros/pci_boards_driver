@@ -112,7 +112,7 @@ class cpz7415v_controller(object):
                 continue
             ###=== set position ===###
             self.mot.driver.pMotion[self.mode]['position'][self.axis] = self.position_cmd_li[0]
-            self.mot.set_motion(axis=self.axis, mode=[self.mode])
+            self.mot.set_motion(axis=self.axis, mode=self.mode)
             self.mot.start_motion(axis=self.axis, stamod='stafh', movmod='PTP')
             self.position_cmd_li = []
             self.position_cmd_flag = False
