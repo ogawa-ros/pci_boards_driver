@@ -139,7 +139,7 @@ class cpz7415v_controller(object):
                 continue
             ###=== set speed ===###
             self.mot.change_speed(axis=self.axis, spd=self.speed_cmd_li)
-            self.target_spd = self.speed_cmd_li[0]
+            self.target_speed = self.speed_cmd_li[0]
             self.speed_cmd_li = []
             self.speed_cmd_flag = False
             continue
