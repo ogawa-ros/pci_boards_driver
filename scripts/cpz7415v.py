@@ -153,7 +153,7 @@ class cpz7415v_controller(object):
             ###=== publish speed ===###
             speed = self.mot.read_speed(axis=self.axis)[0]
             self.pub_speed.publish(speed)
-            time.sleep(self.rate)
+            time.sleep(0.1)
             continue
 
     def move_to_home(self):
