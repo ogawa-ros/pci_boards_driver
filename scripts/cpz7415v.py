@@ -113,7 +113,7 @@ class cpz7415v_controller(object):
             ###=== set position ===###
             self.mot.driver.pMotion[self.mode]['position'][self.axis] = self.position_cmd_li[0]
             self.mot.set_motion(axis=self.axis, mode=[self.mode])
-            self.mot.start_motion(axis=self.axis, stamod='sdstp', movmod=['PTP'])
+            self.mot.start_motion(axis=self.axis, stamod='stafh', movmod=['PTP'])
             self.position_cmd_li = []
             self.position_cmd_flag = False
             continue
@@ -192,5 +192,5 @@ if __name__ == '__main__':
     rospy.init_node('cpz7415v')
     ctrl = cpz7415v_controller()
     ctrl.start_thread_ROS()
-    ctrl.mot.start_motion(axis=ctrl.axis, mode=ctrl.mode)
+    ctrl.mot.start_motion(axis=ctrl.axis, stamod='sdstp', movmod=ctrl.mode)
     rospy.spin()
