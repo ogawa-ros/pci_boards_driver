@@ -193,5 +193,5 @@ if __name__ == '__main__':
     rospy.init_node('cpz7415v')
     ctrl = cpz7415v_controller()
     ctrl.start_thread_ROS()
-    ctrl.mot.start_motion(axis=ctrl.axis, stamod='sdstp', movmod=ctrl.mode)
+    ctrl.mot.start_motion(axis=ctrl.axis, stamod='staud', movmod=ctrl.mode)
     rospy.spin()
