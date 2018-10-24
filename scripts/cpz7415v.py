@@ -26,7 +26,7 @@ class cpz7415v_controller(object):
         self.position_cmd_li = []
         self.speed_cmd_li = []
         self.last_speed = rospy.get_param('~fh_speed')
-        self.last_pasition = rospy.get_param('~position')
+        self.last_position = rospy.get_param('~position')
         ###=== Create instance ===###
         try: self.mot = pyinterface.open(7415, self.rsw_id)
         except OSError as e:
