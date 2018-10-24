@@ -25,6 +25,8 @@ class cpz7415v_controller(object):
         self.busy_flag = False
         self.position_cmd_li = []
         self.speed_cmd_li = []
+        self.last_speed = rospy.get_param('~fh_speed')
+        self.last_pasition = rospy.get_param('~position')
         ###=== Create instance ===###
         try: self.mot = pyinterface.open(7415, self.rsw_id)
         except OSError as e:
@@ -98,8 +100,8 @@ class cpz7415v_controller(object):
     def get_position(self):
         while not rospy.is_shutdown():
             ###=== Stand-by loop for get position ===###
-            if last_position == self.mot.read_counter(axis=self.axis)[0]:
-                last_position = self.mot.read_counter(axis=self.axis)[0]
+            if self.last_position == self.mot.read_counter(axis=self.axis)[0]:
+                self.last_position = self.mot.read_counter(axis=self.axis)[0]
                 time.sleep(self.rate)
                 continue
             ###=== publish position ===###
@@ -134,8 +136,8 @@ class cpz7415v_controller(object):
     def get_speed(self):
         while not rospy.is_shutdown():
             ###=== Stand-by loop for get speed ===###
-            if last_speed == self.mot.read_speed(axis=self.axis)[0]:
-                last_speed = self.mot.read_speed(axis=self.axis)[0]
+            if self.last_speed == self.mot.read_speed(axis=self.axis)[0]:
+                self.last_speed = self.mot.read_speed(axis=self.axis)[0]
                 time.sleep(self.rate)
                 continue
             ###=== publish speed ===###
