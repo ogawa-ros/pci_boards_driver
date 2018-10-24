@@ -22,10 +22,9 @@ class cpz7415v_controller(object):
         self.mode = rospy.get_param('~mode')
         self.position_cmd_flag = False
         self.speed_cmd_flag = False
-        self.move_to_home_flag = False
+        self.busy_flag = False
         self.position_cmd_li = []
         self.speed_cmd_li = []
-        self.target_speed = rospy.get_param('~fh_speed')
         ###=== Create instance ===###
         try: self.mot = pyinterface.open(7415, self.rsw_id)
         except OSError as e:
@@ -42,42 +41,39 @@ class cpz7415v_controller(object):
         self.mot.driver.pMotion[self.mode]['dec_rate'][self.axis] = rospy.get_param('~dec_rate')
         self.mot.set_motion(axis=self.axis, mode=self.mode)
         ###=== Define topic ===###
-        topic_ptp_onoff_cmd = '/{0}_rsw{1}_{2}_ptp_onoff_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_position_cmd = '/{0}_rsw{1}_{2}_position_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_position = '/{0}_rsw{1}_{2}_position'.format(self.node_name, self.rsw_id, self.axis)
         topic_speed_cmd = '/{0}_rsw{1}_{2}_speed_cmd'.format(self.node_name, self.rsw_id, self.axis)
         topic_speed = '/{0}_rsw{1}_{2}_speed'.format(self.node_name, self.rsw_id, self.axis)
-        topic_move_to_home = '/{0}_rsw{1}_{2}_move_to_home'.format(self.node_name, self.rsw_id, self.axis)
         ###=== Define Publisher ===###
         self.pub_position = rospy.Publisher(topic_position, Int64, queue_size=1)
         self.pub_speed = rospy.Publisher(topic_speed, Int64, queue_size=1)
         ###=== Define Subscriber ===###
         self.sub_position_cmd = rospy.Subscriber(topic_position_cmd, Int64, self.position_cmd_switch)
         self.sub_speed_cmd = rospy.Subscriber(topic_speed_cmd, Int64, self.speed_cmd_switch)
-        self.sub_position = rospy.Subscriber(topic_position, Int64, self.position_switch)
-        self.sub_move_to_home = rospy.Subscriber(topic_move_to_home, Bool, self.move_to_home_switch)
+
 
     def position_cmd_switch(self, q):
         self.position_cmd_li.append(q.data)
         self.position_cmd_flag = True
         return
 
+
     def position_switch(self, q):
         self.position_flag = q.data
         return
+
 
     def speed_cmd_switch(self, q):
         self.speed_cmd_li.append(q.data)
         self.speed_cmd_flag = True
         return
 
+
     def speed_switch(self, q):
         self.speed_flag = True
         return
 
-    def move_to_home_switch(self, q):
-        self.move_to_home_flag = q.data
-        return
 
     def set_position(self):
         while not rospy.is_shutdown():
@@ -86,25 +82,37 @@ class cpz7415v_controller(object):
                 time.sleep(self.rate)
                 continue
             ###=== set position ===###
-            self.mot.driver.pMotion[self.mode]['position'][self.axis] = self.position_cmd_li[0]
-            self.mot.set_motion(axis=self.axis, mode='PTP')
-            time.sleep(self.rate)
-            self.mot.start_motion(axis=self.axis, stamod='staud', movmod='PTP')
-            self.position_cmd_li = []
-            self.position_cmd_flag = False
+            if self.busy_flag == False:
+                self.busy_flag = True
+                self.mot.driver.pMotion[self.mode]['position'][self.axis] = self.position_cmd_li[0]
+                self.mot.set_motion(axis=self.axis, mode='PTP')
+                time.sleep(self.rate)
+                self.mot.start_motion(axis=self.axis, stamod='staud', movmod='PTP')
+                self.position_cmd_li = []
+                self.position_cmd_flag = False
+                self.busy_flag = False
+            else: pass
             continue
+
 
     def get_position(self):
         while not rospy.is_shutdown():
             ###=== Stand-by loop for get position ===###
-            if self.mot.driver.pMotion[self.mode]['position'][self.axis] == self.mot.read_counter(axis=self.axis)[0]:
+            if last_position == self.mot.read_counter(axis=self.axis)[0]:
+                last_position = self.mot.read_counter(axis=self.axis)[0]
                 time.sleep(self.rate)
                 continue
             ###=== publish position ===###
-            position = self.mot.read_counter(axis=self.axis)[0]
-            self.pub_position.publish(position)
-            time.sleep(self.rate)
+            if self.busy_flag == False:
+                self.busy_flag = True
+                position = self.mot.read_counter(axis=self.axis)[0]
+                self.pub_position.publish(position)
+                last_position = position
+                time.sleep(self.rate)
+                self.busy_flag = False
+            else: pass
             continue
+
 
     def set_speed(self):
         while not rospy.is_shutdown():
@@ -113,53 +121,50 @@ class cpz7415v_controller(object):
                 time.sleep(self.rate)
                 continue
             ###=== set speed ===###
-            self.mot.change_speed(axis=self.axis, spd=self.speed_cmd_li)
-            self.target_speed = self.speed_cmd_li[0]
-            self.speed_cmd_li = []
-            self.speed_cmd_flag = False
+            if self.busy_flag == False:
+                self.busy_flag = True
+                self.mot.change_speed(axis=self.axis, spd=self.speed_cmd_li)
+                self.speed_cmd_li = []
+                self.speed_cmd_flag = False
+                self.busy_flag = False
+            else: pass
             continue
+
 
     def get_speed(self):
         while not rospy.is_shutdown():
             ###=== Stand-by loop for get speed ===###
-            if self.target_speed == self.mot.read_speed(axis=self.axis)[0]:
+            if last_speed == self.mot.read_speed(axis=self.axis)[0]:
+                last_speed = self.mot.read_speed(axis=self.axis)[0]
                 time.sleep(self.rate)
                 continue
             ###=== publish speed ===###
-            speed = self.mot.read_speed(axis=self.axis)[0]
-            self.pub_speed.publish(speed)
-            time.sleep(self.rate)
+            if self.busy_flag == False:
+                self.busy_flag = True
+                speed = self.mot.read_speed(axis=self.axis)[0]
+                self.pub_speed.publish(speed)
+                last_speed = speed
+                time.sleep(self.rate)
+                self.busy_flag = False
+            else: pass
             continue
 
-    def move_to_home(self):
-        while not rospy.is_shutdown():
-            ###=== Stand-by loop for move to home ===###
-            if self.move_to_home_flag == False:
-                time.sleep(self.rate)
-                continue
-            ###=== move to home ===###
-            self.mot.move_to_home(axis=self.axis)
-            time.sleep(self.rate)
-            self.move_to_home_flag = False
-            continue
 
     def start_thread_ROS(self):
         th1 = threading.Thread(target=self.set_position)
         th2 = threading.Thread(target=self.get_position)
         th3 = threading.Thread(target=self.set_speed)
         th4 = threading.Thread(target=self.get_speed)
-        th5 = threading.Thread(target=self.move_to_home)
         th1.setDaemon(True)
         th2.setDaemon(True)
         th3.setDaemon(True)
         th4.setDaemon(True)
-        th5.setDaemon(True)
         th1.start()
         th2.start()
         th3.start()
         th4.start()
-        th5.start()
         return
+
 
 if __name__ == '__main__':
     rospy.init_node('cpz7415v')
