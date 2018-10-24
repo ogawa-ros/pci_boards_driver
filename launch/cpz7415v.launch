@@ -5,6 +5,13 @@
     <param name="~rsw_id" value="0" />
     <param name="~axis" value="x" />
     <param name="~node_name" value="cpz7415v" />
+    <param name="~mode" value='JOG' />
+    <param name="~position" value="0" />
+    <param name="~clock" value="2999" />
+    <param name="~fl_speed" value="250" />
+    <param name="~fh_speed" value="10000" />
+    <param name="~acc_rate" value="1000" />
+    <param name="~dec_rate" value="1000" />
   </node>
 
 </launch>
