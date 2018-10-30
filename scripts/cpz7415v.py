@@ -29,6 +29,14 @@ class cpz7415v_controller(object):
             'acc_rate': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
             'dec_rate': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
             'position': {'x': 0, 'y': 0, 'z': 0, 'u': 0}
+        },
+        'STOP': {
+            'clock': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
+            'fl_speed': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
+            'fh_speed': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
+            'acc_rate': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
+            'dec_rate': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
+            'position': {'x': 0, 'y': 0, 'z': 0, 'u': 0}
         }
     }
 
@@ -79,31 +87,34 @@ class cpz7415v_controller(object):
             sys.exit()
         ###=== Setting the board ===###
         self.mot.initialize(axis='xyzu')
-        self.motion_conf[self.mode]['clock']['x'] = rospy.get_param('~clock_x')
-        self.motion_conf[self.mode]['clock']['y'] = rospy.get_param('~clock_y')
-        self.motion_conf[self.mode]['clock']['z'] = rospy.get_param('~clock_z')
-        self.motion_conf[self.mode]['clock']['u'] = rospy.get_param('~clock_u')
-        self.motion_conf[self.mode]['position']['x'] = rospy.get_param('~position_x')
-        self.motion_conf[self.mode]['position']['y'] = rospy.get_param('~position_y')
-        self.motion_conf[self.mode]['position']['z'] = rospy.get_param('~position_z')
-        self.motion_conf[self.mode]['position']['u'] = rospy.get_param('~position_u')
-        self.motion_conf[self.mode]['fl_speed']['x'] = rospy.get_param('~fl_speed_x')
-        self.motion_conf[self.mode]['fl_speed']['y'] = rospy.get_param('~fl_speed_y')
-        self.motion_conf[self.mode]['fl_speed']['z'] = rospy.get_param('~fl_speed_z')
-        self.motion_conf[self.mode]['fl_speed']['u'] = rospy.get_param('~fl_speed_u')
-        self.motion_conf[self.mode]['fh_speed']['x'] = rospy.get_param('~fh_speed_x')
-        self.motion_conf[self.mode]['fh_speed']['y'] = rospy.get_param('~fh_speed_y')
-        self.motion_conf[self.mode]['fh_speed']['z'] = rospy.get_param('~fh_speed_z')
-        self.motion_conf[self.mode]['fh_speed']['u'] = rospy.get_param('~fh_speed_u')
-        self.motion_conf[self.mode]['acc_rate']['x'] = rospy.get_param('~acc_rate_x')
-        self.motion_conf[self.mode]['acc_rate']['y'] = rospy.get_param('~acc_rate_y')
-        self.motion_conf[self.mode]['acc_rate']['z'] = rospy.get_param('~acc_rate_z')
-        self.motion_conf[self.mode]['acc_rate']['u'] = rospy.get_param('~acc_rate_u')
-        self.motion_conf[self.mode]['dec_rate']['x'] = rospy.get_param('~dec_rate_x')
-        self.motion_conf[self.mode]['dec_rate']['y'] = rospy.get_param('~dec_rate_y')
-        self.motion_conf[self.mode]['dec_rate']['z'] = rospy.get_param('~dec_rate_z')
-        self.motion_conf[self.mode]['dec_rate']['u'] = rospy.get_param('~dec_rate_u')
-        self.mot.set_motion(axis=self.axis, mode=self.mode)
+        self.motion_conf[self.mode['x']]['clock']['x'] = rospy.get_param('~clock_x')
+        self.motion_conf[self.mode['y']]['clock']['y'] = rospy.get_param('~clock_y')
+        self.motion_conf[self.mode['z']]['clock']['z'] = rospy.get_param('~clock_z')
+        self.motion_conf[self.mode['u']]['clock']['u'] = rospy.get_param('~clock_u')
+        self.motion_conf[self.mode['x']]['position']['x'] = rospy.get_param('~position_x')
+        self.motion_conf[self.mode['y']]['position']['y'] = rospy.get_param('~position_y')
+        self.motion_conf[self.mode['z']]['position']['z'] = rospy.get_param('~position_z')
+        self.motion_conf[self.mode['u']]['position']['u'] = rospy.get_param('~position_u')
+        self.motion_conf[self.mode['x']]['fl_speed']['x'] = rospy.get_param('~fl_speed_x')
+        self.motion_conf[self.mode['y']]['fl_speed']['y'] = rospy.get_param('~fl_speed_y')
+        self.motion_conf[self.mode['z']]['fl_speed']['z'] = rospy.get_param('~fl_speed_z')
+        self.motion_conf[self.mode['u']]['fl_speed']['u'] = rospy.get_param('~fl_speed_u')
+        self.motion_conf[self.mode['x']]['fh_speed']['x'] = rospy.get_param('~fh_speed_x')
+        self.motion_conf[self.mode['y']]['fh_speed']['y'] = rospy.get_param('~fh_speed_y')
+        self.motion_conf[self.mode['z']]['fh_speed']['z'] = rospy.get_param('~fh_speed_z')
+        self.motion_conf[self.mode['u']]['fh_speed']['u'] = rospy.get_param('~fh_speed_u')
+        self.motion_conf[self.mode['x']]['acc_rate']['x'] = rospy.get_param('~acc_rate_x')
+        self.motion_conf[self.mode['y']]['acc_rate']['y'] = rospy.get_param('~acc_rate_y')
+        self.motion_conf[self.mode['z']]['acc_rate']['z'] = rospy.get_param('~acc_rate_z')
+        self.motion_conf[self.mode['u']]['acc_rate']['u'] = rospy.get_param('~acc_rate_u')
+        self.motion_conf[self.mode['x']]['dec_rate']['x'] = rospy.get_param('~dec_rate_x')
+        self.motion_conf[self.mode['y']]['dec_rate']['y'] = rospy.get_param('~dec_rate_y')
+        self.motion_conf[self.mode['z']]['dec_rate']['z'] = rospy.get_param('~dec_rate_z')
+        self.motion_conf[self.mode['u']]['dec_rate']['u'] = rospy.get_param('~dec_rate_u')
+        self.mot.set_motion(axis='x', mode=self.mode['x'])
+        self.mot.set_motion(axis='y', mode=self.mode['y'])
+        self.mot.set_motion(axis='z', mode=self.mode['z'])
+        self.mot.set_motion(axis='u', mode=self.mode['u'])
         ###=== Define topic ===###
         topic_position_x_cmd = '/{0}_rsw{1}_x_position_cmd'.format(self.node_name, self.rsw_id)
         topic_position_y_cmd = '/{0}_rsw{1}_y_position_cmd'.format(self.node_name, self.rsw_id)
@@ -121,10 +132,10 @@ class cpz7415v_controller(object):
         topic_speed_y = '/{0}_rsw{1}_y_speed'.format(self.node_name, self.rsw_id)
         topic_speed_z = '/{0}_rsw{1}_z_speed'.format(self.node_name, self.rsw_id)
         topic_speed_u = '/{0}_rsw{1}_u_speed'.format(self.node_name, self.rsw_id)
-        topic_output_do1_cmd = '/{0}_rsw{1}_{2}_output_do1_cmd'.format(self.node_name, self.rsw_id)
-        topic_output_do2_cmd = '/{0}_rsw{1}_{2}_output_do2_cmd'.format(self.node_name, self.rsw_id)
-        topic_output_do3_cmd = '/{0}_rsw{1}_{2}_output_do3_cmd'.format(self.node_name, self.rsw_id)
-        topic_output_do4_cmd = '/{0}_rsw{1}_{2}_output_do4_cmd'.format(self.node_name, self.rsw_id)
+        topic_output_do1_cmd = '/{0}_rsw{1}_do1_cmd'.format(self.node_name, self.rsw_id)
+        topic_output_do2_cmd = '/{0}_rsw{1}_do2_cmd'.format(self.node_name, self.rsw_id)
+        topic_output_do3_cmd = '/{0}_rsw{1}_do3_cmd'.format(self.node_name, self.rsw_id)
+        topic_output_do4_cmd = '/{0}_rsw{1}_do4_cmd'.format(self.node_name, self.rsw_id)
         ###=== Define Publisher ===###
         self.pub_position_x = rospy.Publisher(topic_position_x, Int64, queue_size=1)
         self.pub_position_y = rospy.Publisher(topic_position_y, Int64, queue_size=1)
@@ -245,20 +256,20 @@ class cpz7415v_controller(object):
     
     
     def _output_do(self):
-        self.mot.driver._output_do(1, self.do_status[1])
-        self.mot.driver._output_do(2, self.do_status[2])
-        self.mot.driver._output_do(3, self.do_status[3])
-        self.mot.driver._output_do(4, self.do_status[4])
+        self.mot.driver._output_do(1, int(self.do_status[1]))
+        self.mot.driver._output_do(2, int(self.do_status[2]))
+        self.mot.driver._output_do(3, int(self.do_status[3]))
+        self.mot.driver._output_do(4, int(self.do_status[4]))
         return
     
 
     def _main_thread(self):
         while not rospy.is_shutdown():
-            _set_position()
-            _set_speed()
-            _get_position()
-            _get_speed()
-            _output_do()
+            self._set_position()
+            self._set_speed()
+            self._get_position()
+            self._get_speed()
+            self._output_do()
             continue
 
 
@@ -273,5 +284,5 @@ if __name__ == '__main__':
     rospy.init_node('cpz7415v')
     ctrl = cpz7415v_controller()
     ctrl.start_thread_ROS()
-    ctrl.mot.start_motion(axis=ctrl.axis, stamod='staud', movmod=ctrl.mode)
+    #ctrl.mot.start_motion(axis=ctrl.axis, stamod='staud', movmod=ctrl.mode)
     rospy.spin()
