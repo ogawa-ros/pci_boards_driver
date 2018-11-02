@@ -13,64 +13,48 @@ from std_msgs.msg import Bool
 
 class cpz7415v_controller(object):
 
-    motion_conf = {
-        'JOG': {
-            'clock': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
-            'fl_speed': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
-            'fh_speed': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
-            'acc_rate': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
-            'dec_rate': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
-            'position': {'x': 0, 'y': 0, 'z': 0, 'u': 0}
+    motion = {
+        'x': {
+            'clock':  0, 'acc_mode': '', 'low_speed': 0,
+            'speed': 0, 'acc': 0, 'dec': 0, 'step': 0
         },
-        'PTP': {
-            'clock': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
-            'fl_speed': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
-            'fh_speed': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
-            'acc_rate': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
-            'dec_rate': {'x': 0, 'y': 0, 'z': 0, 'u': 0},
-            'position': {'x': 0, 'y': 0, 'z': 0, 'u': 0}
+        'y': {
+            'clock':  0, 'acc_mode': '', 'low_speed': 0,
+            'speed': 0, 'acc': 0, 'dec': 0, 'step': 0
+        },
+        'z': {
+            'clock':  0, 'acc_mode': '', 'low_speed': 0,
+            'speed': 0, 'acc': 0, 'dec': 0, 'step': 0
+        },
+        'u': {
+            'clock':  0, 'acc_mode': '', 'low_speed': 0,
+            'speed': 0, 'acc': 0, 'dec': 0, 'step': 0
         }
     }
 
-    mode = {
-        'x': 'PTP',
-        'y': 'PTP',
-        'z': 'PTP',
-        'u': 'PTP',
-    }
+    move_mode = {'x': '', 'y': '', 'z': '', 'u': ''}
+
+    last_position = {'x': 0, 'y': 0, 'z': 0, 'u': 0}
+
+    last_speed = {'x': 0, 'y': 0, 'z': 0, 'u': 0}
 
     do_status = {1:0, 2:0, 3:0, 4:0}
 
-    last_position = {
-        'x': 0,
-        'y': 0,
-        'z': 0,
-        'u': 0,
-    }
-
-    last_speed = {
-        'x': 0,
-        'y': 0,
-        'z': 0,
-        'u': 0,
-    }
-
+    
     def __init__(self):
         ###=== Define member-variables ===###
         self.rate = rospy.get_param('~rate')
         self.rsw_id = rospy.get_param('~rsw_id')
         self.node_name = rospy.get_param('~node_name')
-        self.mode['x'] = rospy.get_param('~mode_x')
-        self.mode['y'] = rospy.get_param('~mode_y')
-        self.mode['z'] = rospy.get_param('~mode_z')
-        self.mode['u'] = rospy.get_param('~mode_u')
-        self.position_cmd_flag = False
+        self.move_mode['x'] = rospy.get_param('~mode_x')
+        self.move_mode['y'] = rospy.get_param('~mode_y')
+        self.move_mode['z'] = rospy.get_param('~mode_z')
+        self.move_mode['u'] = rospy.get_param('~mode_u')
+        self.step_cmd_flag = False
         self.speed_cmd_flag = False
         self.busy_flag = False
-        self.position_cmd_li = []
+        self.step_cmd_li = []
         self.speed_cmd_li = []
-        #self.last_speed = rospy.get_param('~fh_speed')
-        #self.last_position = rospy.get_param('~position')
         ###=== Create instance ===###
         try: self.mot = pyinterface.open(7415, self.rsw_id)
         except OSError as e:
@@ -79,72 +63,76 @@ class cpz7415v_controller(object):
             sys.exit()
         ###=== Setting the board ===###
         self.mot.initialize(axis='xyzu')
-        self.motion_conf[self.mode['x']]['clock']['x'] = rospy.get_param('~clock_x')
-        self.motion_conf[self.mode['y']]['clock']['y'] = rospy.get_param('~clock_y')
-        self.motion_conf[self.mode['z']]['clock']['z'] = rospy.get_param('~clock_z')
-        self.motion_conf[self.mode['u']]['clock']['u'] = rospy.get_param('~clock_u')
-        self.motion_conf[self.mode['x']]['position']['x'] = rospy.get_param('~position_x')
-        self.motion_conf[self.mode['y']]['position']['y'] = rospy.get_param('~position_y')
-        self.motion_conf[self.mode['z']]['position']['z'] = rospy.get_param('~position_z')
-        self.motion_conf[self.mode['u']]['position']['u'] = rospy.get_param('~position_u')
-        self.motion_conf[self.mode['x']]['fl_speed']['x'] = rospy.get_param('~fl_speed_x')
-        self.motion_conf[self.mode['y']]['fl_speed']['y'] = rospy.get_param('~fl_speed_y')
-        self.motion_conf[self.mode['z']]['fl_speed']['z'] = rospy.get_param('~fl_speed_z')
-        self.motion_conf[self.mode['u']]['fl_speed']['u'] = rospy.get_param('~fl_speed_u')
-        self.motion_conf[self.mode['x']]['fh_speed']['x'] = rospy.get_param('~fh_speed_x')
-        self.motion_conf[self.mode['y']]['fh_speed']['y'] = rospy.get_param('~fh_speed_y')
-        self.motion_conf[self.mode['z']]['fh_speed']['z'] = rospy.get_param('~fh_speed_z')
-        self.motion_conf[self.mode['u']]['fh_speed']['u'] = rospy.get_param('~fh_speed_u')
-        self.motion_conf[self.mode['x']]['acc_rate']['x'] = rospy.get_param('~acc_rate_x')
-        self.motion_conf[self.mode['y']]['acc_rate']['y'] = rospy.get_param('~acc_rate_y')
-        self.motion_conf[self.mode['z']]['acc_rate']['z'] = rospy.get_param('~acc_rate_z')
-        self.motion_conf[self.mode['u']]['acc_rate']['u'] = rospy.get_param('~acc_rate_u')
-        self.motion_conf[self.mode['x']]['dec_rate']['x'] = rospy.get_param('~dec_rate_x')
-        self.motion_conf[self.mode['y']]['dec_rate']['y'] = rospy.get_param('~dec_rate_y')
-        self.motion_conf[self.mode['z']]['dec_rate']['z'] = rospy.get_param('~dec_rate_z')
-        self.motion_conf[self.mode['u']]['dec_rate']['u'] = rospy.get_param('~dec_rate_u')
-        self.mot.set_motion(axis='x', mode=self.mode['x'])
-        self.mot.set_motion(axis='y', mode=self.mode['y'])
-        self.mot.set_motion(axis='z', mode=self.mode['z'])
-        self.mot.set_motion(axis='u', mode=self.mode['u'])
+        self.motion['x']['clock'] = rospy.get_param('~clock_x')
+        self.motion['x']['acc_mode'] = rospy.get_param('~acc_mode')
+        self.motion['x']['low_speed'] = rospy.get_param('~low_speed')
+        self.motion['x']['speed'] = rospy.get_param('~speed')
+        self.motion['x']['acc'] = rospy.get_param('~acc')
+        self.motion['x']['dec'] = rospy.get_param{'~dec')
+        self.motion['x']['step'] = rospy.get_param('~step')
+        self.motion['y']['clock'] = rospy.get_param('~clock_x')
+        self.motion['y']['acc_mode'] = rospy.get_param('~acc_mode')
+        self.motion['y']['low_speed'] = rospy.get_param('~low_speed')
+        self.motion['y']['speed'] = rospy.get_param('~speed')
+        self.motion['y']['acc'] = rospy.get_param('~acc')
+        self.motion['y']['dec'] = rospy.get_param{'~dec')
+        self.motion['y']['step'] = rospy.get_param('~step')
+        self.motion['z']['clock'] = rospy.get_param('~clock_x')
+        self.motion['z']['acc_mode'] = rospy.get_param('~acc_mode')
+        self.motion['z']['low_speed'] = rospy.get_param('~low_speed')
+        self.motion['z']['speed'] = rospy.get_param('~speed')
+        self.motion['z']['acc'] = rospy.get_param('~acc')
+        self.motion['z']['dec'] = rospy.get_param{'~dec')
+        self.motion['z']['step'] = rospy.get_param('~step')
+        self.motion['u']['clock'] = rospy.get_param('~clock_x')
+        self.motion['u']['acc_mode'] = rospy.get_param('~acc_mode')
+        self.motion['u']['low_speed'] = rospy.get_param('~low_speed')
+        self.motion['u']['speed'] = rospy.get_param('~speed')
+        self.motion['u']['acc'] = rospy.get_param('~acc')
+        self.motion['u']['dec'] = rospy.get_param{'~dec')
+        self.motion['u']['step'] = rospy.get_param('~step')
+        self.mot.set_motion(axis='x', mode=self.move_mode['x'], motion=self.motion)
+        self.mot.set_motion(axis='y', mode=self.move_mode['y'], motion=self.motion)
+        self.mot.set_motion(axis='z', mode=self.move_mode['z'], motion=self.motion)
+        self.mot.set_motion(axis='u', mode=self.move_mode['u'], motion=self.motion)
         ###=== Define topic ===###
-        topic_position_x_cmd = '/{0}_rsw{1}_x_position_cmd'.format(self.node_name, self.rsw_id)
-        topic_position_y_cmd = '/{0}_rsw{1}_y_position_cmd'.format(self.node_name, self.rsw_id)
-        topic_position_z_cmd = '/{0}_rsw{1}_z_position_cmd'.format(self.node_name, self.rsw_id)
-        topic_position_u_cmd = '/{0}_rsw{1}_u_position_cmd'.format(self.node_name, self.rsw_id)
-        topic_position_x = '/{0}_rsw{1}_x_position'.format(self.node_name, self.rsw_id)
-        topic_position_y = '/{0}_rsw{1}_y_position'.format(self.node_name, self.rsw_id)
-        topic_position_z = '/{0}_rsw{1}_z_position'.format(self.node_name, self.rsw_id)
-        topic_position_u = '/{0}_rsw{1}_u_position'.format(self.node_name, self.rsw_id)
+        topic_step_x_cmd = '/{0}_rsw{1}_x_step_cmd'.format(self.node_name, self.rsw_id)
+        topic_step_x =  '/{0}_rsw{1}_x_step'.format(self.node_name, self.rsw_id)
         topic_speed_x_cmd = '/{0}_rsw{1}_x_speed_cmd'.format(self.node_name, self.rsw_id)
-        topic_speed_y_cmd = '/{0}_rsw{1}_y_speed_cmd'.format(self.node_name, self.rsw_id)
-        topic_speed_z_cmd = '/{0}_rsw{1}_z_speed_cmd'.format(self.node_name, self.rsw_id)
-        topic_speed_u_cmd = '/{0}_rsw{1}_u_speed_cmd'.format(self.node_name, self.rsw_id)
         topic_speed_x = '/{0}_rsw{1}_x_speed'.format(self.node_name, self.rsw_id)
+        topic_step_y_cmd = '/{0}_rsw{1}_y_step_cmd'.format(self.node_name, self.rsw_id)
+        topic_step_y =  '/{0}_rsw{1}_y_step'.format(self.node_name, self.rsw_id)
+        topic_speed_y_cmd = '/{0}_rsw{1}_y_speed_cmd'.format(self.node_name, self.rsw_id)
         topic_speed_y = '/{0}_rsw{1}_y_speed'.format(self.node_name, self.rsw_id)
+        topic_step_z_cmd = '/{0}_rsw{1}_z_step_cmd'.format(self.node_name, self.rsw_id)
+        topic_step_z =  '/{0}_rsw{1}_z_step'.format(self.node_name, self.rsw_id)
+        topic_speed_z_cmd = '/{0}_rsw{1}_z_speed_cmd'.format(self.node_name, self.rsw_id)
         topic_speed_z = '/{0}_rsw{1}_z_speed'.format(self.node_name, self.rsw_id)
+        topic_step_u_cmd = '/{0}_rsw{1}_u_step_cmd'.format(self.node_name, self.rsw_id)
+        topic_step_u =  '/{0}_rsw{1}_u_step'.format(self.node_name, self.rsw_id)
+        topic_speed_u_cmd = '/{0}_rsw{1}_u_speed_cmd'.format(self.node_name, self.rsw_id)
         topic_speed_u = '/{0}_rsw{1}_u_speed'.format(self.node_name, self.rsw_id)
         topic_output_do1_cmd = '/{0}_rsw{1}_do1_cmd'.format(self.node_name, self.rsw_id)
         topic_output_do2_cmd = '/{0}_rsw{1}_do2_cmd'.format(self.node_name, self.rsw_id)
         topic_output_do3_cmd = '/{0}_rsw{1}_do3_cmd'.format(self.node_name, self.rsw_id)
         topic_output_do4_cmd = '/{0}_rsw{1}_do4_cmd'.format(self.node_name, self.rsw_id)
         ###=== Define Publisher ===###
-        self.pub_position_x = rospy.Publisher(topic_position_x, Int64, queue_size=1)
-        self.pub_position_y = rospy.Publisher(topic_position_y, Int64, queue_size=1)
-        self.pub_position_z = rospy.Publisher(topic_position_z, Int64, queue_size=1)
-        self.pub_position_u = rospy.Publisher(topic_position_u, Int64, queue_size=1)
+        self.pub_step_x = rospy.Publisher(topic_step_x, Int64, queue_size=1)
         self.pub_speed_x = rospy.Publisher(topic_speed_x, Int64, queue_size=1)
+        self.pub_step_y = rospy.Publisher(topic_step_y, Int64, queue_size=1)
         self.pub_speed_y = rospy.Publisher(topic_speed_y, Int64, queue_size=1)
+        self.pub_step_z = rospy.Publisher(topic_step_z, Int64, queue_size=1)
         self.pub_speed_z = rospy.Publisher(topic_speed_z, Int64, queue_size=1)
+        self.pub_step_u = rospy.Publisher(topic_step_u, Int64, queue_size=1)
         self.pub_speed_u = rospy.Publisher(topic_speed_u, Int64, queue_size=1)
         ###=== Define Subscriber ===###
-        self.sub_position_x_cmd = rospy.Subscriber(topic_position_x_cmd, Int64, self.set_position, callback_args='x')
-        self.sub_position_y_cmd = rospy.Subscriber(topic_position_y_cmd, Int64, self.set_position, callback_args='y')
-        self.sub_position_z_cmd = rospy.Subscriber(topic_position_z_cmd, Int64, self.set_position, callback_args='z')
-        self.sub_position_u_cmd = rospy.Subscriber(topic_position_u_cmd, Int64, self.set_position, callback_args='u')
+        self.sub_step_x_cmd = rospy.Subscriber(topic_step_x_cmd, Int64, self.set_step, callback_args='x')
         self.sub_speed_x_cmd = rospy.Subscriber(topic_speed_x_cmd, Int64, self.set_speed, callback_args='x')
+        self.sub_step_y_cmd = rospy.Subscriber(topic_step_y_cmd, Int64, self.set_step, callback_args='y')
         self.sub_speed_y_cmd = rospy.Subscriber(topic_speed_y_cmd, Int64, self.set_speed, callback_args='y')
+        self.sub_step_z_cmd = rospy.Subscriber(topic_step_z_cmd, Int64, self.set_step, callback_args='z')
         self.sub_speed_z_cmd = rospy.Subscriber(topic_speed_z_cmd, Int64, self.set_speed, callback_args='z')
+        self.sub_step_u_cmd = rospy.Subscriber(topic_step_u_cmd, Int64, self.set_step, callback_args='u')
         self.sub_speed_u_cmd = rospy.Subscriber(topic_speed_u_cmd, Int64, self.set_speed, callback_args='u')
         self.sub_output_do1_cmd = rospy.Subscriber(topic_output_do1_cmd, Bool, self.output_do, callback_args=1)
         self.sub_output_do2_cmd = rospy.Subscriber(topic_output_do2_cmd, Bool, self.output_do, callback_args=2)
@@ -152,93 +140,65 @@ class cpz7415v_controller(object):
         self.sub_output_do4_cmd = rospy.Subscriber(topic_output_do4_cmd, Bool, self.output_do, callback_args=4)
 
 
-    def set_position(self, q, axis):
-        self.motion_conf['PTP']['position'][axis] = q.data
+    def set_step(self, q, axis):
+        self.motion[axis]['step'] = q.data
         return
 
 
-    def _set_position(self):
-        self.mot.driver.pMotion = self.motion_conf
-        
-        if (self.mode['x'] == 'PTP' and 
-            self.mot.driver.check_move_onoff('x')[0] == 0):
-            self.mot.set_motion(axis='x', mode='PTP')
-            self.mot.start_motion(axis='x', stamod='staud', movmod='PTP')
-        else:
-            pass
-        
-        if (self.mode['y'] == 'PTP' and 
-            self.mot.driver.check_move_onoff('y')[0] == 0):
-            self.mot.set_motion(axis='y', mode='PTP')
-            self.mot.start_motion(axis='y', stamod='staud', movmod='PTP')
-        else:
-            pass
-        
-        if (self.mode['z'] == 'PTP' and 
-            self.mot.driver.check_move_onoff('z')[0] == 0):
-            self.mot.set_motion(axis='z', mode='PTP')
-            self.mot.start_motion(axis='z', stamod='staud', movmod='PTP')
-        else:
-            pass
-        
-        if (self.mode['u'] == 'PTP' and 
-            self.mot.driver.check_move_onoff('u')[0] == 0):
-            self.mot.set_motion(axis='u', mode='PTP')
-            self.mot.start_motion(axis='u', stamod='staud', movmod='PTP')
-        else:
-            pass
-        
+    def _set_step(self):
+        axis = ''
+        step = []
+        for i in self.move_mode:
+            if self.move_mode[i] == 'ptp':
+                axis += i
+                step.append(self.motion[i]['step']
+            else: pass
+        self.mot.set_motion(axis=axis, mode='ptp', motion=self.motion)
+        self.mot.change_step(axis=axis, step=step)
         return
 
 
-    def _get_position(self):
-        position_x = self.mot.read_counter(axis='x')[0]
-        position_y = self.mot.read_counter(axis='y')[0]
-        position_z = self.mot.read_counter(axis='z')[0]
-        position_u = self.mot.read_counter(axis='u')[0]
-        
-        if self.last_position['x'] != position_x: self.pub_position_x.publish(position_x)
-        if self.last_position['y'] != position_y: self.pub_position_y.publish(position_y)
-        if self.last_position['z'] != position_z: self.pub_position_z.publish(position_z)
-        if self.last_position['u'] != position_u: self.pub_position_u.publish(position_u)
-        
-        self.last_position['x'] = position_x
-        self.last_position['y'] = position_y
-        self.last_position['z'] = position_z
-        self.last_position['u'] = position_u
+    def _get_step(self):
+        step = self.mot.read_counter(axis='xyzu', cnt_mode='counter')
+        if self.last_position['x'] != step[0]: self.pub_step_x.publish(step[0])
+        if self.last_position['y'] != step[1]: self.pub_step_y.publish(step[1])
+        if self.last_position['z'] != step[2]: self.pub_step_z.publish(step[2])
+        if self.last_position['u'] != step[3]: self.pub_step_u.publish(step[3])
+        self.last_position['x'] = step[0]
+        self.last_position['y'] = step[1]
+        self.last_position['z'] = step[2]
+        self.last_position['u'] = step[3]
         return
 
 
     def set_speed(self, q, axis):
-        self.motion_conf['JOG']['fh_speed'][axis] = q.data
+        self.motion[axis]['speed'] = q.data
         return
 
 
     def _set_speed(self):
-        self.mot.driver.pMotion = self.motion_conf
-
-        if self.mode['x'] == 'JOG': self.mot.change_speed('x', [self.motion_conf['JOG']['speed']['x']])
-        if self.mode['y'] == 'JOG': self.mot.change_speed('y', [self.motion_conf['JOG']['speed']['y']])
-        if self.mode['z'] == 'JOG': self.mot.change_speed('z', [self.motion_conf['JOG']['speed']['z']])
-        if self.mode['u'] == 'JOG': self.mot.change_speed('u', [self.motion_conf['JOG']['speed']['u']])
+        axis = ''
+        speed = []
+        for i in self.move_mode:
+            if self.move_mode[i] == 'jog':
+                axis += i
+                speed.append(self.motion[i]['speed'])
+            else: pass
+        self.mot.set_motion(axis=axis, mode='jog', motion=self.motion)
+        self.mot.change_speed(axis=axis, mode='accdec_change', speed=speed)
         return
 
 
     def _get_speed(self):
-        speed_x = self.mot.read_speed('x')[0]
-        speed_y = self.mot.read_speed('y')[0]
-        speed_z = self.mot.read_speed('z')[0]
-        speed_u = self.mot.read_speed('u')[0]
-
-        if self.last_speed['x'] != speed_x: self.pub_speed_x.publish(speed_x)
-        if self.last_speed['y'] != speed_y: self.pub_speed_y.publish(speed_y)
-        if self.last_speed['z'] != speed_z: self.pub_speed_z.publish(speed_z)
-        if self.last_speed['u'] != speed_u: self.pub_speed_u.publish(speed_u)
-
-        self.last_speed['x'] = speed_x
-        self.last_speed['y'] = speed_y
-        self.last_speed['z'] = speed_z
-        self.last_speed['u'] = speed_u
+        speed = self.mot.read_speed(axis='xyzu')
+        if self.last_speed['x'] != speed[0]: self.pub_speed_x.publish(speed[0])
+        if self.last_speed['y'] != speed[1]: self.pub_speed_y.publish(speed[1])
+        if self.last_speed['z'] != speed[2]: self.pub_speed_z.publish(speed[2])
+        if self.last_speed['u'] != speed[3]: self.pub_speed_u.publish(speed[3])
+        self.last_speed['x'] = speed[0]
+        self.last_speed['y'] = speed[1]
+        self.last_speed['z'] = speed[2]
+        self.last_speed['u'] = speed[3]
         return
 
 
