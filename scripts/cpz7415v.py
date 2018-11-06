@@ -151,7 +151,7 @@ class cpz7415v_controller(object):
         for i in self.move_mode:
             if self.move_mode[i] == 'ptp':
                 axis += i
-                step.append(self.motion[i]['step']
+                step.append(self.motion[i]['step'])
             else: pass
         self.mot.set_motion(axis=axis, mode='ptp', motion=self.motion)
         self.mot.change_step(axis=axis, step=step)
@@ -217,9 +217,9 @@ class cpz7415v_controller(object):
 
     def _main_thread(self):
         while not rospy.is_shutdown():
-            self._set_position()
+            self._set_step()
             self._set_speed()
-            self._get_position()
+            self._get_step()
             self._get_speed()
             self._output_do()
             continue
