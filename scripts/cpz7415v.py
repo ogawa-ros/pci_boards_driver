@@ -38,7 +38,7 @@ class cpz7415v_controller(object):
 
     last_speed = {'x': 0, 'y': 0, 'z': 0, 'u': 0}
 
-    do_status = {1:0, 2:0, 3:0, 4:0}
+    do_status = 0
 
     
     def __init__(self):
@@ -202,16 +202,13 @@ class cpz7415v_controller(object):
         return
 
 
-    def output_do(self, q, ch):
-        self.do_status[ch] = q.data
+    def output_do(self, q):
+        self.do_status = q.data
         return
     
     
     def _output_do(self):
-        #self.mot._output_do(1, int(self.do_status[1]))
-        #self.mot.._output_do(2, int(self.do_status[2]))
-        #self.mot.._output_do(3, int(self.do_status[3]))
-        #self.mot.._output_do(4, int(self.do_status[4]))
+        self.mot.output_do(self.do.status)
         return
     
 
@@ -221,7 +218,7 @@ class cpz7415v_controller(object):
             self._set_speed()
             self._get_step()
             self._get_speed()
-            #self._output_do()
+            self._output_do()
             continue
 
 
