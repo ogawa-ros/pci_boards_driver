@@ -208,10 +208,10 @@ class cpz7415v_controller(object):
     
     
     def _output_do(self):
-        self.mot.driver._output_do(1, int(self.do_status[1]))
-        self.mot.driver._output_do(2, int(self.do_status[2]))
-        self.mot.driver._output_do(3, int(self.do_status[3]))
-        self.mot.driver._output_do(4, int(self.do_status[4]))
+        #self.mot._output_do(1, int(self.do_status[1]))
+        #self.mot.._output_do(2, int(self.do_status[2]))
+        #self.mot.._output_do(3, int(self.do_status[3]))
+        #self.mot.._output_do(4, int(self.do_status[4]))
         return
     
 
@@ -221,7 +221,7 @@ class cpz7415v_controller(object):
             self._set_speed()
             self._get_step()
             self._get_speed()
-            self._output_do()
+            #self._output_do()
             continue
 
 
