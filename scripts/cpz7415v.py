@@ -208,7 +208,7 @@ class cpz7415v_controller(object):
     
     
     def _output_do(self):
-        self.mot.output_do(self.do.status)
+        self.mot.output_do(self.do_status)
         return
     
 
