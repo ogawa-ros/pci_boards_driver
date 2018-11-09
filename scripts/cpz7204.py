@@ -63,15 +63,23 @@ class CPZ7204(object):
         return
 
     def pub_function(self):
-        status_last = None
+        # init
+        status_last = self.mot.get_status()
+        self.pub_busy.publish(status["busy"])
+        self.pub_pEL.publish(status["limit"]["+EL"])
+        self.pub_mEL.publish(status["limit"]["-EL"])
+
         while not rospy.is_shutdown():
             status = self.mot.get_status()
 
             if status != status_last:
-                self.pub_busy.publish(status["busy"])
-                self.pub_pEL.publish(status["limit"]["+EL"])
-                self.pub_mEL.publish(status["limit"]["-EL"])
-
+                if status["busy"] != status_last["busy"]:
+                    self.pub_busy.publish(status["busy"])
+                elif status["limit"]["+EL"] != status_last["limit"]["+EL"]:
+                    self.pub_pEL.publish(status["limit"]["+EL"])
+                elif status["limit"]["-EL"] != status_last["limit"]["-EL"]:
+                    self.pub_mEL.publish(status["limit"]["-EL"])
+                else: pass
                 status_last = status
             else: pass
             
