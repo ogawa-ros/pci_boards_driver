@@ -1,0 +1,7 @@
+<launch>
+
+  <node pkg="pci_boards_driver" name="cpz7204_rsw0" type="cpz7204.py" required="true" output="screen">
+    <param name="~rsw_id" value="0" />
+  </node>
+
+</launch>
