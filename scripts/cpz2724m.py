@@ -14,11 +14,6 @@ import pyinterface
 
 class CPZ2724(object):
     
-    flag = {
-            "1_16" : False,
-            "17_32" : False,
-            }
-
     ch_list = ["01","02","03","04","05","06","07","08","09","10",
                 "11","12","13","14","15","16","17","18","19","20",
                 "21","22","23","24","25","26","27","28","29","30",
@@ -26,9 +21,17 @@ class CPZ2724(object):
     ch_list_byte = []
     ch_list_word = ["1_16", "17_32"]
     ch_list_dword = []
+
+    flag = False
+    data = [0] * 32    
     
     def __init__(self):
         self.rsw_id = rospy.get_param("~rsw_id")
+        try:
+            self.dio = pyinterface.open(2724, self.rsw_id)
+        except OSError as e:
+            rospy.logerr(e, name, self.rsw_id)
+            sys.exit()
 
         self.pub = [rospy.Publisher(
                         name = "cpz2724_rsw{0}/di{1}".format(self.rsw_id, ch),
@@ -44,10 +47,10 @@ class CPZ2724(object):
                         callback_args = ch,
                         queue_size = 1
                     ) for ch in self.ch_list]
-
+        
         self.sub_byte = [rospy.Subscriber(
                         name = "cpz2724_rsw{0}/do{1}".format(self.rsw_id, ch),
-                        data_class = std_msgs.msg.Bool,
+                        data_class = std_msgs.msg.ByteMultiArray,
                         callback = self.output_byte,
                         callback_args = ch,
                         queue_size = 1
@@ -55,7 +58,7 @@ class CPZ2724(object):
 
         self.sub_word = [rospy.Subscriber(
                         name = "cpz2724_rsw{0}/do{1}".format(self.rsw_id, ch),
-                        data_class = std_msgs.msg.Bool,
+                        data_class = std_msgs.msg.ByteMultiArray,
                         callback = self.output_word,
                         callback_args = ch,
                         queue_size = 1
@@ -63,58 +66,83 @@ class CPZ2724(object):
 
         self.sub_dword = [rospy.Subscriber(
                         name = "cpz2724_rsw{0}/do{1}".format(self.rsw_id, ch),
-                        data_class = std_msgs.msg.Bool,
+                        data_class = std_msgs.msg.ByteMultiArray,
                         callback = self.output_dword,
-                        callback_args = ch,
                         queue_size = 1
                     ) for ch in self.ch_list_dword]
-
-        try:
-            self.dio = pyinterface.open(2724, self.rsw_id)
-        except OSError as e:
-            rospy.logerr(e, name, self.rsw_id)
-            sys.exit()
-        
         pass
 
     def output_point(self, req, ch):
-        if int(ch) <= 16:
-            if not self.flag["1_16"]:
-                self.dio.output_point([req.data] ,int(ch))
-        elif int(ch) >= 17:
-            if not self.flag["17_32"]:
-                self.dio.output_point([req.data] ,int(ch))
-        else: pass
+        self.data[int(ch)-1] = int(req.data)
+        self.flag = True
         return
 
     def output_byte(self, req, ch):
-        self.dio.output_byte("OUT{}".format(ch), req.data)
+        if len(list(req.data)) != 8:
+            print("INVALID DATA")
+            return
+        if ch == "1_8":
+            self.data[0:8] = list(req.data)
+            self.flag = True
+        elif ch == "9_16":
+            self.data[8:16] = list(req.data)
+            self.flag = True
+        elif ch == "17_24":
+            self.data[16:24] = list(req.data)
+            self.flag = True
+        elif ch == "25_32":
+            self.data[24:32] = list(req.data)
+            self.flag = True
+        else: pass
         return
-
+    
     def output_word(self, req, ch):
-        self.flag[ch] = True
-        self.dio.output_word("OUT{}".format(ch), req.data)
-        self.flag[ch] = False
+        if len(list(req.data)) != 16:
+            print("INVALID DATA")
+            return
+        if ch == "1_16":
+            self.data[0:16] = list(req.data)
+            self.flag = True
+        elif ch == "17_32":
+            self.data[16:32] = list(req.data)
+            self.flag = True
+        else: pass
         return
 
-    def output_dword(self, req, ch):
-        self.dio.output_dword("OUT{}".format(ch), req.data)
+    def output_dword(self, req):
+        if len(list(req.data)) != 32:
+            print("INVALID DATA")
+            return
+        self.data = list(req.data)
+        self.flag = True
         return
 
+    def output_function(self):
+        while not rospy.is_shutdown():
+            if not self.flag:
+                time.sleep(0.0001)
+                continue
+            
+            if self.flag:
+                self.dio.output_dword(range_="OUT1_32", data=self.data)
+                self.flag = False
+                continue
+        return
+            
 
     def pub_function(self):
-        di_list = self.dio.input_dword()
+        time.sleep(2) # wait initialize self.dio
+        di_list = self.dio.input_dword("1_32").to_list()
         for ch, pub in zip(self.ch_list, self.pub):
             pub.publish(di_list[int(ch)-1])
 
         while not rospy.is_shutdown():
-            ret = self.dio.input_dword() # ch1~32
+            ret = self.dio.input_dword("1_32").to_list() # ch1~32
             for ch, pub in zip(self.ch_list, self.pub):
                 if ret[int(ch)-1] != di_list[int(ch)-1]:
                     pub.publish(ret[int(ch)-1])
                     di_list[int(ch)-1] = ret[int(ch)-1]
                 else: pass
-
             time.sleep(0.001)
             continue
         
@@ -129,6 +157,11 @@ if __name__ == "__main__":
             target = cpz.pub_function,
             daemon = True,
         )
+    output_thread = threading.Thread(
+            target = cpz.output_function,
+            daemon = True,
+        )
     pub_thread.start()
+    output_thread.start()
 
     rospy.spin()
