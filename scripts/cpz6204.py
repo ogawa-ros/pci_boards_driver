@@ -13,6 +13,12 @@ import pyinterface
 
 class CPZ6204(object):
 
+    origin = None
+    origin_flag = False
+
+    counter = {"counter": None, "ch": None}
+    counter_flag = False
+
     def __init__(self):
         self.ch_list = rospy.get_param("~ch_list")
         self.ch_list_set = rospy.get_param("~ch_list_set")
@@ -34,14 +40,16 @@ class CPZ6204(object):
                     ) for ch in self.ch_list_set]
 
         if self.rsw_id == "0":
-            self.srv = rospy.Service(
+            self.sub_origin = rospy.Subscriber(
                     name = "/encoder/origin_set",
-                    data_class = std_srvs.srv.SetBool,
-                    callback = self.origin_setting,
+                    data_class = std_msgs.msg.Bool,
+                    callback = self.set_origin,
+                    queue_size = 1,
                 )
         
         try:
             self.dio = pyinterface.open(6204, self.rsw_id)
+            self.initialize()
         except OSError as e:
             rospy.logerr(e, name, self.rsw_id)
             sys.exit()
@@ -68,23 +76,48 @@ class CPZ6204(object):
         return
 
     # for encoder
-    def origin_setting(self, req):
-        if req.data == True:
-            self.board_setting(z_mode="CLS0")
-        else:
-            self.board_setting(z_mode="")
-        time.sleep(0.1)
-        return #???
+
+    def set_origin(self, req):
+        self.origin = req.data
+        self.origin_flag = True
+        return
+
+    def origin_setting(self):
+        while not rospy.is_shutdown():
+            if not self.origin_flag:
+                time.sleep(0.01)
+                continue
+
+            if self.origin == True:
+                self.board_setting(z_mode="CLS0")
+            else:
+                self.board_setting(z_mode="")
+            self.origin_flag = False
+            time.sleep(0.1)
+        return
 
     # for dome_encoder
     def set_counter(self, counter, ch):
-        self.dio.set_counter(counter.data, ch=ch)
+        self.counter["counter"] = counter.data
+        self.counter["ch"] = ch
+        self.counter_flag = True
+        return
+
+    def counter_setting(self):
+        while not rospy.is_shutdown():
+            if not self.counter_flag:
+                time.sleep(0.01)
+                continue
+            
+            self.dio.set_counter(self.counter["counter"], ch=self.counter["ch"])
+            self.counter_flag = False
+            time.sleep(0.1)
         return
 
     def pub_function(self):
         while not rospy.is_shutdown():
             for ch, pub in zip(self.ch_list, self.pub):
-                ret = self.dio.get_counter(ch)
+                ret = self.dio.get_counter(ch).to_int()
                 pub.publish(int(ret))
             
             time.sleep(0.001)
@@ -101,6 +134,16 @@ if __name__ == "__main__":
             target = cpz.pub_function,
             daemon = True,
         )
+    origin_thread = threading.Thread(
+            target = cpz.origin_setting,
+            daemon = True,
+        )
+    counter_thread = threading.Thread(
+            target = cpz.counter_setting,
+            daemon = True,
+        )
     pub_thread.start()
+    origin_thread.start()
+    counter_thread.start()
 
     rospy.spin()
