@@ -47,6 +47,7 @@ class CPZ7204(object):
                         queue_size = 1, 
                     )
 
+
         try:
             self.mot = pyinterface.open(7204, self.rsw_id)
             self.mot.initialize()
@@ -54,7 +55,7 @@ class CPZ7204(object):
         except OSError as e:
             rospy.logerr(e, name, self.rsw_id)
             sys.exit()
-        
+
         pass
 
     def set_function(self, req):
@@ -63,17 +64,18 @@ class CPZ7204(object):
         return
 
     def move_function(self):
-        while not self.flag:
-            time.sleep(0.01)
-            continue
+        while not rospy.is_shutdown():
+            if not self.flag:
+                time.sleep(0.01)
+                continue
 
-        else:
-            if self.data==True: # NASCO
-                self.mot.set_motion(mode="JOG", step = -1)
-            else: # SMART
-                self.mot.set_motion(mode="JOG", step = 1)
-            self.mot.start_motion(mode="JOG")
-            self.flag = False
+            else:
+                if self.data: # NASCO
+                    self.mot.set_motion(mode="JOG", step = -1)
+                else: # SMART
+                    self.mot.set_motion(mode="JOG", step = 1)
+                self.mot.start_motion(mode="JOG")
+                self.flag = False
 
         return
 
