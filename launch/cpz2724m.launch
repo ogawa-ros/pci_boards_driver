@@ -1,6 +1,10 @@
 <launch>
   
-  <include ns="necctrl" file="$(find necst_ros3)/launch/necctrl_cpz2724m.launch" />
-  <include ns="necopt" file="$(find necst_ros3)/launch/necopt_cpz2724m.launch" />
-
+  <node pkg="pci_boards_driver" 
+        name="cpz2724m_rsw0" 
+        type="cpz2724m.py"
+        output="screen" >
+    <param name="~rsw_id" value="0" />
+  </node>
+  
 </launch>
