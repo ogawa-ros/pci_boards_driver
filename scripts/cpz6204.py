@@ -41,7 +41,7 @@ class CPZ6204(object):
 
         if self.rsw_id == "0":
             self.sub_origin = rospy.Subscriber(
-                    name = "/encoder/origin_set",
+                    name = "/cpz6204_rsw{0}/origin",
                     data_class = std_msgs.msg.Bool,
                     callback = self.set_origin,
                     queue_size = 1,
