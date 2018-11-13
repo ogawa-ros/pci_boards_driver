@@ -13,6 +13,9 @@ import pyinterface
 
 class CPZ7204(object):
 
+    data = None
+    flag = False
+
     def __init__(self):
         self.rsw_id = rospy.get_param("~rsw_id")
 
@@ -40,7 +43,7 @@ class CPZ7204(object):
         self.sub = rospy.Subscriber(
                         name = "/cpz7204_rsw{0}/step".format(self.rsw_id),
                         data_class = std_msgs.msg.Bool,
-                        callback = self.move_function,
+                        callback = self.set_function,
                         queue_size = 1, 
                     )
 
@@ -54,12 +57,24 @@ class CPZ7204(object):
         
         pass
 
-    def move_function(self, req):
-        if req.data==True: #NASCO
-            self.mot.set_motion(mode="JOG", step = -1)
-        else: #SMART
-            self.mot.set_motion(mode="JOG", step = 1)
-        self.mot.start_motion(mode="JOG")
+    def set_function(self, req):
+        self.data = req.data
+        self.flag = True
+        return
+
+    def move_function(self):
+        while not self.flag:
+            time.sleep(0.01)
+            continue
+
+        else:
+            if self.data==True: # NASCO
+                self.mot.set_motion(mode="JOG", step = -1)
+            else: # SMART
+                self.mot.set_motion(mode="JOG", step = 1)
+            self.mot.start_motion(mode="JOG")
+            self.flag = False
+
         return
 
     def pub_function(self):
@@ -97,6 +112,11 @@ if __name__ == "__main__":
             target = cpz.pub_function,
             daemon = True,
         )
+    move_thread = threading.Thread(
+            target = cpz.move_function,
+            daemon = True,
+        )
     pub_thread.start()
+    move_thread.start()
 
     rospy.spin()
