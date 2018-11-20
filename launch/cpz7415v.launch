@@ -1,8 +1,46 @@
 <launch>
+
   <node pkg="pci_boards_driver" name="cpz7415v" type="cpz7415v.py" required="true" output="screen">
     <param name="~rate" value="0.01" />
     <param name="~rsw_id" value="0" />
-    <param name="~axis" value="x" />
     <param name="~node_name" value="cpz7415v" />
+    
+    <param name="~mode_x" value='jog' />
+    <param name="~clock_x" value="2999" />
+    <param name="~acc_mode_x" value="acc_normal" />
+    <param name="~low_speed_x" value="250" />
+    <param name="~speed_x" value="10000" />
+    <param name="~acc_x" value="1000" />
+    <param name="~dec_x" value="1000" />
+    <param name="~step_x" value="0" />
+
+    <param name="~mode_y" value='jog' />
+    <param name="~clock_y" value="2999" />
+    <param name="~acc_mode_y" value="acc_normal" />
+    <param name="~low_speed_y" value="250" />
+    <param name="~speed_y" value="10000" />
+    <param name="~acc_y" value="1000" />
+    <param name="~dec_y" value="1000" />
+    <param name="~step_y" value="0" />
+
+    <param name="~mode_z" value='jog' />
+    <param name="~clock_z" value="2999" />
+    <param name="~acc_mode_z" value="acc_normal" />
+    <param name="~low_speed_z" value="250" />
+    <param name="~speed_z" value="10000" />
+    <param name="~acc_z" value="1000" />
+    <param name="~dec_z" value="1000" />
+    <param name="~step_z" value="0" />
+
+    <param name="~mode_u" value='jog' />
+    <param name="~clock_u" value="2999" />
+    <param name="~acc_mode_u" value="acc_normal" />
+    <param name="~low_speed_u" value="250" />
+    <param name="~speed_u" value="10000" />
+    <param name="~acc_u" value="1000" />
+    <param name="~dec_u" value="1000" />
+    <param name="~step_u" value="0" />
+
   </node>
+
 </launch>
