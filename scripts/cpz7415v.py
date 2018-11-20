@@ -153,8 +153,10 @@ class cpz7415v_controller(object):
                 axis += i
                 step.append(self.motion[i]['step'])
             else: pass
-        self.mot.set_motion(axis=axis, mode='ptp', motion=self.motion)
-        self.mot.change_step(axis=axis, step=step)
+        if axis != '':
+            self.mot.set_motion(axis=axis, mode='ptp', motion=self.motion)
+            self.mot.change_step(axis=axis, step=step)
+        else: pass
         return
 
 
@@ -184,8 +186,10 @@ class cpz7415v_controller(object):
                 axis += i
                 speed.append(self.motion[i]['speed'])
             else: pass
-        self.mot.set_motion(axis=axis, mode='jog', motion=self.motion)
-        self.mot.change_speed(axis=axis, mode='accdec_change', speed=speed)
+        if axis != '':
+            self.mot.set_motion(axis=axis, mode='jog', motion=self.motion)
+            self.mot.change_speed(axis=axis, mode='accdec_change', speed=speed)
+        else: pass
         return
 
 
