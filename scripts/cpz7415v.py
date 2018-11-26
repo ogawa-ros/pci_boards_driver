@@ -112,10 +112,11 @@ class cpz7415v_controller(object):
         topic_step_u = '/{0}_rsw{1}_u_step'.format(self.node_name, self.rsw_id)
         topic_speed_u_cmd = '/{0}_rsw{1}_u_speed_cmd'.format(self.node_name, self.rsw_id)
         topic_speed_u = '/{0}_rsw{1}_u_speed'.format(self.node_name, self.rsw_id)
-        topic_output_do1_cmd = '/{0}_rsw{1}_do1_cmd'.format(self.node_name, self.rsw_id)
-        topic_output_do2_cmd = '/{0}_rsw{1}_do2_cmd'.format(self.node_name, self.rsw_id)
-        topic_output_do3_cmd = '/{0}_rsw{1}_do3_cmd'.format(self.node_name, self.rsw_id)
-        topic_output_do4_cmd = '/{0}_rsw{1}_do4_cmd'.format(self.node_name, self.rsw_id)
+        topic_output_do_cmd = '/{0}_rsw{1}_do_cmd'.format(self.node_name, self.rsw_id)
+        # topic_output_do1_cmd = '/{0}_rsw{1}_do1_cmd'.format(self.node_name, self.rsw_id)
+        # topic_output_do2_cmd = '/{0}_rsw{1}_do2_cmd'.format(self.node_name, self.rsw_id)
+        # topic_output_do3_cmd = '/{0}_rsw{1}_do3_cmd'.format(self.node_name, self.rsw_id)
+        # topic_output_do4_cmd = '/{0}_rsw{1}_do4_cmd'.format(self.node_name, self.rsw_id)
         ###=== Define Publisher ===###
         self.pub_step_x = rospy.Publisher(topic_step_x, Int64, queue_size=1)
         self.pub_speed_x = rospy.Publisher(topic_speed_x, Int64, queue_size=1)
@@ -134,10 +135,11 @@ class cpz7415v_controller(object):
         self.sub_speed_z_cmd = rospy.Subscriber(topic_speed_z_cmd, Int64, self.set_speed, callback_args='z')
         self.sub_step_u_cmd = rospy.Subscriber(topic_step_u_cmd, Int64, self.set_step, callback_args='u')
         self.sub_speed_u_cmd = rospy.Subscriber(topic_speed_u_cmd, Int64, self.set_speed, callback_args='u')
-        self.sub_output_do1_cmd = rospy.Subscriber(topic_output_do1_cmd, Bool, self.output_do, callback_args=1)
-        self.sub_output_do2_cmd = rospy.Subscriber(topic_output_do2_cmd, Bool, self.output_do, callback_args=2)
-        self.sub_output_do3_cmd = rospy.Subscriber(topic_output_do3_cmd, Bool, self.output_do, callback_args=3)
-        self.sub_output_do4_cmd = rospy.Subscriber(topic_output_do4_cmd, Bool, self.output_do, callback_args=4)
+        self.sub_output_do_cmd = rospy.Subscriber(topic_output_do_cmd, Int64, self.output_do)
+        # self.sub_output_do1_cmd = rospy.Subscriber(topic_output_do1_cmd, Bool, self.output_do, callback_args=1)
+        # self.sub_output_do2_cmd = rospy.Subscriber(topic_output_do2_cmd, Bool, self.output_do, callback_args=2)
+        # self.sub_output_do3_cmd = rospy.Subscriber(topic_output_do3_cmd, Bool, self.output_do, callback_args=3)
+        # self.sub_output_do4_cmd = rospy.Subscriber(topic_output_do4_cmd, Bool, self.output_do, callback_args=4)
 
 
     def set_step(self, q, axis):
@@ -155,7 +157,8 @@ class cpz7415v_controller(object):
             else: pass
         if axis != '':
             self.mot.set_motion(axis=axis, mode='ptp', motion=self.motion)
-            self.mot.change_step(axis=axis, step=step)
+            self.mot.start_motion(axis=axis, start_mode='acc', move_mode='ptp')
+            print('start')
         else: pass
         return
 
@@ -219,6 +222,7 @@ class cpz7415v_controller(object):
     def _main_thread(self):
         while not rospy.is_shutdown():
             self._set_step()
+            time.sleep(1.)
             self._set_speed()
             self._get_step()
             self._get_speed()
