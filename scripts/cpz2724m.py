@@ -22,7 +22,7 @@ class CPZ2724(object):
     ch_list_word = ["1_16", "17_32"]
     ch_list_dword = []
 
-    flag = False
+    output_flag = False
     data = [0] * 32    
     
     def __init__(self):
@@ -74,7 +74,7 @@ class CPZ2724(object):
 
     def output_point(self, req, ch):
         self.data[int(ch)-1] = int(req.data)
-        self.flag = True
+        self.output_flag = True
         return
 
     def output_byte(self, req, ch):
@@ -83,16 +83,16 @@ class CPZ2724(object):
             return
         if ch == "1_8":
             self.data[0:8] = list(req.data)
-            self.flag = True
+            self.output_flag = True
         elif ch == "9_16":
             self.data[8:16] = list(req.data)
-            self.flag = True
+            self.output_flag = True
         elif ch == "17_24":
             self.data[16:24] = list(req.data)
-            self.flag = True
+            self.output_flag = True
         elif ch == "25_32":
             self.data[24:32] = list(req.data)
-            self.flag = True
+            self.output_flag = True
         else: pass
         return
     
@@ -102,10 +102,10 @@ class CPZ2724(object):
             return
         if ch == "1_16":
             self.data[0:16] = list(req.data)
-            self.flag = True
+            self.output_flag = True
         elif ch == "17_32":
             self.data[16:32] = list(req.data)
-            self.flag = True
+            self.output_flag = True
         else: pass
         return
 
@@ -114,38 +114,32 @@ class CPZ2724(object):
             print("INVALID DATA")
             return
         self.data = list(req.data)
-        self.flag = True
+        self.output_flag = True
         return
 
-    def output_function(self):
-        while not rospy.is_shutdown():
-            if not self.flag:
-                time.sleep(0.0001)
-                continue
-            
-            if self.flag:
-                self.dio.output_dword(range_="OUT1_32", data=self.data)
-                self.flag = False
-                continue
-        return
-            
-
-    def pub_function(self):
+    def dio_function(self):
         time.sleep(2) # wait initialize self.dio
         di_list = self.dio.input_dword("1_32").to_list()
         for ch, pub in zip(self.ch_list, self.pub):
             pub.publish(di_list[int(ch)-1])
 
         while not rospy.is_shutdown():
-            ret = self.dio.input_dword("1_32").to_list() # ch1~32
-            for ch, pub in zip(self.ch_list, self.pub):
-                if ret[int(ch)-1] != di_list[int(ch)-1]:
-                    pub.publish(ret[int(ch)-1])
-                    di_list[int(ch)-1] = ret[int(ch)-1]
-                else: pass
-            time.sleep(0.001)
+            if not self.output_flag:
+                ret = self.dio.input_dword("1_32").to_list() # ch1~32
+                for ch, pub in zip(self.ch_list, self.pub):
+                    if ret[int(ch)-1] != di_list[int(ch)-1]:
+                        pub.publish(ret[int(ch)-1])
+                        di_list[int(ch)-1] = ret[int(ch)-1]
+                    else: pass
+                continue
+
+            if self.output_flag:
+                self.dio.output_dword(range_="OUT1_32", data=self.data)
+                self.output_flag = False
+                continue
+
+            time.sleep(0.0001)
             continue
-        
         return
 
 
@@ -153,15 +147,10 @@ if __name__ == "__main__":
     rospy.init_node(name)
     cpz = CPZ2724()
 
-    pub_thread = threading.Thread(
-            target = cpz.pub_function,
+    dio_thread = threading.Thread(
+            target = cpz.dio_function,
             daemon = True,
         )
-    output_thread = threading.Thread(
-            target = cpz.output_function,
-            daemon = True,
-        )
-    pub_thread.start()
-    output_thread.start()
+    dio_thread.start()
 
     rospy.spin()
