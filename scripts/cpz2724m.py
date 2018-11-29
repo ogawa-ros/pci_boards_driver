@@ -124,19 +124,16 @@ class CPZ2724(object):
             pub.publish(di_list[int(ch)-1])
 
         while not rospy.is_shutdown():
-            if not self.output_flag:
-                ret = self.dio.input_dword("1_32").to_list() # ch1~32
-                for ch, pub in zip(self.ch_list, self.pub):
-                    if ret[int(ch)-1] != di_list[int(ch)-1]:
-                        pub.publish(ret[int(ch)-1])
-                        di_list[int(ch)-1] = ret[int(ch)-1]
-                    else: pass
-                continue
+            ret = self.dio.input_dword("1_32").to_list() # ch1~32
+            for ch, pub in zip(self.ch_list, self.pub):
+                if ret[int(ch)-1] != di_list[int(ch)-1]:
+                    pub.publish(ret[int(ch)-1])
+                    di_list[int(ch)-1] = ret[int(ch)-1]
+                else: pass
 
             if self.output_flag:
                 self.dio.output_dword(range_="OUT1_32", data=self.data)
                 self.output_flag = False
-                continue
 
             time.sleep(0.0001)
             continue
