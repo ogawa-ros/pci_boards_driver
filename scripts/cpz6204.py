@@ -22,11 +22,11 @@ class CPZ6204(object):
     def __init__(self):
         self.rsw_id = rospy.get_param("~rsw_id")
         if self.rsw_id == 0:
-            self.ch_list = ["1","2"]
+            self.ch_list = [1,2]
             self.ch_list_set = ""
         if self.rsw_id == 1:
-            self.ch_list = ["1"]
-            self.ch_list_set = ["1"]
+            self.ch_list = [1]
+            self.ch_list_set = [1]
 
         self.pub = [rospy.Publisher(
                         name = "/cpz6204_rsw{0}/ch{1}".format(self.rsw_id, ch),
@@ -120,7 +120,7 @@ class CPZ6204(object):
     def pub_function(self):
         while not rospy.is_shutdown():
             for ch, pub in zip(self.ch_list, self.pub):
-                ret = self.dio.get_counter(ch).to_int()
+                ret = self.dio.get_counter(ch)
                 pub.publish(int(ret))
             
             time.sleep(0.001)
