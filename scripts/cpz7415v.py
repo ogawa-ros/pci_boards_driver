@@ -62,8 +62,7 @@ class cpz7415v_controller(object):
                          format(self.node_name, self.rsw_id))
             sys.exit()
         ###=== Setting the board ===###
-        # self.mot.initialize(axis='xyzu')
-        self.mot.initialize()
+        self.mot.initialize(axis='xyzu')
         self.motion['x']['clock'] = rospy.get_param('~clock_x')
         self.motion['x']['acc_mode'] = rospy.get_param('~acc_mode_x')
         self.motion['x']['low_speed'] = rospy.get_param('~low_speed_x')
@@ -113,11 +112,11 @@ class cpz7415v_controller(object):
         topic_step_u = '/{0}_rsw{1}_u_step'.format(self.node_name, self.rsw_id)
         topic_speed_u_cmd = '/{0}_rsw{1}_u_speed_cmd'.format(self.node_name, self.rsw_id)
         topic_speed_u = '/{0}_rsw{1}_u_speed'.format(self.node_name, self.rsw_id)
-        topic_output_do_cmd = '/{0}_rsw{1}_do_cmd'.format(self.node_name, self.rsw_id)        
-        topic_output_do1_cmd = '/{0}_rsw{1}_do1_cmd'.format(self.node_name, self.rsw_id)
-        topic_output_do2_cmd = '/{0}_rsw{1}_do2_cmd'.format(self.node_name, self.rsw_id)
-        topic_output_do3_cmd = '/{0}_rsw{1}_do3_cmd'.format(self.node_name, self.rsw_id)
-        topic_output_do4_cmd = '/{0}_rsw{1}_do4_cmd'.format(self.node_name, self.rsw_id)
+        topic_output_do_cmd = '/{0}_rsw{1}_do_cmd'.format(self.node_name, self.rsw_id)
+        # topic_output_do1_cmd = '/{0}_rsw{1}_do1_cmd'.format(self.node_name, self.rsw_id)
+        # topic_output_do2_cmd = '/{0}_rsw{1}_do2_cmd'.format(self.node_name, self.rsw_id)
+        # topic_output_do3_cmd = '/{0}_rsw{1}_do3_cmd'.format(self.node_name, self.rsw_id)
+        # topic_output_do4_cmd = '/{0}_rsw{1}_do4_cmd'.format(self.node_name, self.rsw_id)
         ###=== Define Publisher ===###
         self.pub_step_x = rospy.Publisher(topic_step_x, Int64, queue_size=1)
         self.pub_speed_x = rospy.Publisher(topic_speed_x, Int64, queue_size=1)
@@ -137,12 +136,11 @@ class cpz7415v_controller(object):
         self.sub_step_u_cmd = rospy.Subscriber(topic_step_u_cmd, Int64, self.set_step, callback_args='u')
         self.sub_speed_u_cmd = rospy.Subscriber(topic_speed_u_cmd, Int64, self.set_speed, callback_args='u')
         self.sub_output_do_cmd = rospy.Subscriber(topic_output_do_cmd, Int64, self.output_do)
-        '''
-        self.sub_output_do1_cmd = rospy.Subscriber(topic_output_do1_cmd, Int64, self.output_do, callback_args=1 ** 0)
-        self.sub_output_do2_cmd = rospy.Subscriber(topic_output_do2_cmd, Int64, self.output_do, callback_args=2 ** 1)
-        self.sub_output_do3_cmd = rospy.Subscriber(topic_output_do3_cmd, Int64, self.output_do, callback_args=3 ** 2)
-        self.sub_output_do4_cmd = rospy.Subscriber(topic_output_do4_cmd, Int64, self.output_do, callback_args=4 ** 3)
-        '''
+        # self.sub_output_do1_cmd = rospy.Subscriber(topic_output_do1_cmd, Bool, self.output_do, callback_args=1)
+        # self.sub_output_do2_cmd = rospy.Subscriber(topic_output_do2_cmd, Bool, self.output_do, callback_args=2)
+        # self.sub_output_do3_cmd = rospy.Subscriber(topic_output_do3_cmd, Bool, self.output_do, callback_args=3)
+        # self.sub_output_do4_cmd = rospy.Subscriber(topic_output_do4_cmd, Bool, self.output_do, callback_args=4)
+
 
     def set_step(self, q, axis):
         self.motion[axis]['step'] = q.data
@@ -157,8 +155,10 @@ class cpz7415v_controller(object):
                 axis += i
                 step.append(self.motion[i]['step'])
             else: pass
-        self.mot.set_motion(axis=axis, mode='ptp', motion=self.motion)
-        self.mot.start_motion(axis=axis, start_mode='acc', move_mode='ptp')
+        if axis != '':
+            self.mot.set_motion(axis=axis, mode='ptp', motion=self.motion)
+            self.mot.start_motion(axis=axis, start_mode='acc', move_mode='ptp')
+        else: pass
         return
 
 
@@ -188,8 +188,10 @@ class cpz7415v_controller(object):
                 axis += i
                 speed.append(self.motion[i]['speed'])
             else: pass
-        self.mot.set_motion(axis=axis, mode='jog', motion=self.motion)
-        self.mot.change_speed(axis=axis, mode='accdec_change', speed=speed)
+        if axis != '':
+            self.mot.set_motion(axis=axis, mode='jog', motion=self.motion)
+            self.mot.change_speed(axis=axis, mode='accdec_change', speed=speed)
+        else: pass
         return
 
 
@@ -205,12 +207,7 @@ class cpz7415v_controller(object):
         self.last_speed['u'] = speed[3]
         return
 
-    '''
-    def output_do(self, q, out):
-        self.do_status = out
-        return
-    '''
-    
+
     def output_do(self, q):
         self.do_status = q.data
         return
@@ -224,11 +221,11 @@ class cpz7415v_controller(object):
     def _main_thread(self):
         while not rospy.is_shutdown():
             self._set_step()
+            time.sleep(1.)
             self._set_speed()
             self._get_step()
             self._get_speed()
             self._output_do()
-            time.sleep(5)
             continue
 
 
