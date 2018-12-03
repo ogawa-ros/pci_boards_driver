@@ -29,14 +29,14 @@ class CPZ6204(object):
             self.ch_list_set = [1]
 
         self.pub = [rospy.Publisher(
-                        name = "/cpz6204_rsw{0}/ch{1}".format(self.rsw_id, ch),
+                        name = "/cpz6204_rsw{0}/ch0{1}".format(self.rsw_id, ch),
                         data_class = std_msgs.msg.Int64,
                         latch = True,
                         queue_size = 1,
                     ) for ch in self.ch_list]
         
         self.sub = [rospy.Subscriber(
-                        name = "/cpz6204_rsw{0}/ch{1}_set_counter".format(self.rsw_id, ch),
+                        name = "/cpz6204_rsw{0}/ch0{1}_set_counter".format(self.rsw_id, ch),
                         data_class = std_msgs.msg.Int64,
                         callback = self.set_counter,
                         callback_args = ch,
@@ -52,7 +52,9 @@ class CPZ6204(object):
                 )
          
         try:
-            self.dio = pyinterface.open(6204, self.rsw_id)
+            #self.dio = pyinterface.open(6204, self.rsw_id)
+            # for antenna test
+            self.dio = pyinterface.open(6204, "1")
             self.initialize()
         except OSError as e:
             rospy.logerr(e, name, self.rsw_id)
@@ -63,7 +65,7 @@ class CPZ6204(object):
 
     def initialize(self):
         if self.rsw_id == 0:
-            self.dio.initialize()
+            #self.dio.initialize()
             self.board_setting()
         elif self.rsw_id == 1:
             self.dio.reset(ch=1)
@@ -120,7 +122,7 @@ class CPZ6204(object):
     def pub_function(self):
         while not rospy.is_shutdown():
             for ch, pub in zip(self.ch_list, self.pub):
-                ret = self.dio.get_counter(ch)
+                ret = self.dio.get_counter(unsigned=False, ch=ch)
                 pub.publish(int(ret))
             
             time.sleep(0.001)
