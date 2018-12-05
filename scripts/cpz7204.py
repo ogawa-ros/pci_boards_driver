@@ -63,23 +63,7 @@ class CPZ7204(object):
         self.flag = True
         return
 
-    def move_function(self):
-        while not rospy.is_shutdown():
-            if not self.flag:
-                time.sleep(0.01)
-                continue
-
-            else:
-                if self.data: # NASCO
-                    self.mot.set_motion(mode="JOG", step = -1)
-                else: # SMART
-                    self.mot.set_motion(mode="JOG", step = 1)
-                self.mot.start_motion(mode="JOG")
-                self.flag = False
-
-        return
-
-    def pub_function(self):
+    def dio_function(self):
         # init
         status_last = self.mot.get_status()
         self.pub_busy.publish(status["busy"])
@@ -92,13 +76,21 @@ class CPZ7204(object):
             if status != status_last:
                 if status["busy"] != status_last["busy"]:
                     self.pub_busy.publish(status["busy"])
-                elif status["limit"]["+EL"] != status_last["limit"]["+EL"]:
+                if status["limit"]["+EL"] != status_last["limit"]["+EL"]:
                     self.pub_pEL.publish(status["limit"]["+EL"])
-                elif status["limit"]["-EL"] != status_last["limit"]["-EL"]:
+                if status["limit"]["-EL"] != status_last["limit"]["-EL"]:
                     self.pub_mEL.publish(status["limit"]["-EL"])
                 else: pass
                 status_last = status
             else: pass
+
+            if self.flag:
+                if self.data: # NASCO
+                    self.mot.set_motion(mode="JOG", step = -1)
+                else: # SMART
+                    self.mot.set_motion(mode="JOG", step = 1)
+                self.mot.start_motion(mode="JOG")
+                self.flag = False
             
             time.sleep(0.01)
             continue
@@ -110,15 +102,10 @@ if __name__ == "__main__":
     rospy.init_node(name)
     cpz = CPZ7204()
 
-    pub_thread = threading.Thread(
-            target = cpz.pub_function,
+    dio_thread = threading.Thread(
+            target = cpz.dio_function,
             daemon = True,
         )
-    move_thread = threading.Thread(
-            target = cpz.move_function,
-            daemon = True,
-        )
-    pub_thread.start()
-    move_thread.start()
+    dio_thread.start()
 
     rospy.spin()
