@@ -47,7 +47,6 @@ class CPZ7204(object):
                         queue_size = 1, 
                     )
 
-
         try:
             self.mot = pyinterface.open(7204, self.rsw_id)
             self.mot.initialize()
@@ -66,13 +65,21 @@ class CPZ7204(object):
     def dio_function(self):
         # init
         status_last = self.mot.get_status()
-        self.pub_busy.publish(status["busy"])
-        self.pub_pEL.publish(status["limit"]["+EL"])
-        self.pub_mEL.publish(status["limit"]["-EL"])
+        self.pub_busy.publish(status_last["busy"])
+        self.pub_pEL.publish(status_last["limit"]["+EL"])
+        self.pub_mEL.publish(status_last["limit"]["-EL"])
 
+        jogp = {
+            'acc_mode': 'SIN',
+            'low_speed': 100,
+            'speed': 1000,
+            'acc': 500,
+            'axis': 1,
+        }
+        
         while not rospy.is_shutdown():
             status = self.mot.get_status()
-
+            
             if status != status_last:
                 if status["busy"] != status_last["busy"]:
                     self.pub_busy.publish(status["busy"])
@@ -86,10 +93,10 @@ class CPZ7204(object):
 
             if self.flag:
                 if self.data: # NASCO
-                    self.mot.set_motion(mode="JOG", step = -1)
+                    self.mot.set_motion(mode="JOG", step=-1, **jogp)
                 else: # SMART
-                    self.mot.set_motion(mode="JOG", step = 1)
-                self.mot.start_motion(mode="JOG")
+                    self.mot.set_motion(mode="JOG", step=1, **jogp)
+                self.mot.start_motion(mode="JOG", axis=1)
                 self.flag = False
             
             time.sleep(0.01)
