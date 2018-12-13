@@ -52,9 +52,7 @@ class CPZ6204(object):
                 )
          
         try:
-            #self.dio = pyinterface.open(6204, self.rsw_id)
-            # for antenna test
-            self.dio = pyinterface.open(6204, "1")
+            self.dio = pyinterface.open(6204, self.rsw_id)
             self.initialize()
         except OSError as e:
             rospy.logerr(e, name, self.rsw_id)
