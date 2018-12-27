@@ -69,7 +69,6 @@ class CPZ6204(object):
             self.dio.reset(ch=1)
             self.dio.set_mode(mode="MD0", direction=0, equal=1, latch=0, ch=1)
         else:pass
-
         return
 
     def board_setting(self, z_mode=""):
@@ -85,20 +84,6 @@ class CPZ6204(object):
         self.origin_flag = True
         return
 
-    def origin_setting(self):
-        while not rospy.is_shutdown():
-            if not self.origin_flag:
-                time.sleep(0.01)
-                continue
-
-            if self.origin == True:
-                self.board_setting(z_mode="CLS0")
-            else:
-                self.board_setting(z_mode="")
-            self.origin_flag = False
-            time.sleep(0.1)
-        return
-
     # for dome_encoder
     def set_counter(self, counter, ch):
         self.counter["counter"] = counter.data
@@ -106,26 +91,27 @@ class CPZ6204(object):
         self.counter_flag = True
         return
 
-    def counter_setting(self):
-        while not rospy.is_shutdown():
-            if not self.counter_flag:
-                time.sleep(0.01)
-                continue
-            
-            self.dio.set_counter(self.counter["counter"], ch=self.counter["ch"])
-            self.counter_flag = False
-            time.sleep(0.1)
-        return
-
-    def pub_function(self):
+    def dio_function(self):
         while not rospy.is_shutdown():
             for ch, pub in zip(self.ch_list, self.pub):
                 ret = self.dio.get_counter(unsigned=False, ch=ch)
                 pub.publish(int(ret))
+
+            if self.origin_flag:
+                if self.origin == True:
+                    self.board_setting(z_mode="CLS0")
+                else:
+                    self.board_setting(z_mode="")
+                self.origin_flag = False
+            else: pass
+
+            if self.counter_flag:
+                self.dio.set_counter(self.counter["counter"], ch=self.counter["ch"])
+                self.counter_flag = False
+            else: pass
             
             time.sleep(0.001)
             continue
-        
         return
 
 
@@ -133,20 +119,10 @@ if __name__ == "__main__":
     rospy.init_node(name)
     cpz = CPZ6204()
 
-    pub_thread = threading.Thread(
-            target = cpz.pub_function,
+    dio_thread = threading.Thread(
+            target = cpz.dio_function,
             daemon = True,
         )
-    origin_thread = threading.Thread(
-            target = cpz.origin_setting,
-            daemon = True,
-        )
-    counter_thread = threading.Thread(
-            target = cpz.counter_setting,
-            daemon = True,
-        )
-    pub_thread.start()
-    origin_thread.start()
-    counter_thread.start()
+    dio_thread.start()
 
     rospy.spin()
