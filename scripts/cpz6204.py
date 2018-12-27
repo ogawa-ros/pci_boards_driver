@@ -63,7 +63,7 @@ class CPZ6204(object):
 
     def initialize(self):
         if self.rsw_id == 0:
-            #self.dio.initialize()
+            self.dio.initialize()
             self.board_setting()
         elif self.rsw_id == 1:
             self.dio.reset(ch=1)
