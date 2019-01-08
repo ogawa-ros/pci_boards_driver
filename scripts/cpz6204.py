@@ -63,8 +63,13 @@ class CPZ6204(object):
 
     def initialize(self):
         if self.rsw_id == 0:
-            #self.dio.initialize()
-            self.board_setting()
+            mode = self.dio.get_mode()
+            if mode["mode"] == "":
+                self.dio.initialize()
+                [self.dio.set_mode(mode="MD0 SEL1", direction=1, equal=0, latch=0, ch=ch) 
+                        for ch in self.ch_list]
+                self.board_setting()
+            else: pass
         elif self.rsw_id == 1:
             self.dio.reset(ch=1)
             self.dio.set_mode(mode="MD0", direction=0, equal=1, latch=0, ch=1)
@@ -72,8 +77,6 @@ class CPZ6204(object):
         return
 
     def board_setting(self, z_mode=""):
-        [self.dio.set_mode(mode="MD0 SEL1", direction=1, equal=0, latch=0, ch=ch) 
-                for ch in self.ch_list]
         [self.dio.set_z_mode(clear_condition=z_mode, latch_condition="", z_polarity=0, ch=ch) 
                 for ch in self.ch_list]
         return

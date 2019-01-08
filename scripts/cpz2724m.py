@@ -29,6 +29,7 @@ class CPZ2724(object):
         self.rsw_id = rospy.get_param("~rsw_id")
         try:
             self.dio = pyinterface.open(2724, self.rsw_id)
+            self.dio.initialize()
         except OSError as e:
             rospy.logerr(e, name, self.rsw_id)
             sys.exit()
