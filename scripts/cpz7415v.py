@@ -40,6 +40,10 @@ class cpz7415v_controller(object):
 
     do_status = 0
 
+    step_flag = {'x': False, 'y': False, 'z': False, 'u': False}
+    speed_flag = {'x': False, 'y': False, 'z': False, 'u': False}
+    do_flag = False
+
     
     def __init__(self):
         ###=== Define member-variables ===###
@@ -50,17 +54,14 @@ class cpz7415v_controller(object):
         self.move_mode['y'] = rospy.get_param('~mode_y')
         self.move_mode['z'] = rospy.get_param('~mode_z')
         self.move_mode['u'] = rospy.get_param('~mode_u')
-        self.step_cmd_flag = False
-        self.speed_cmd_flag = False
-        self.busy_flag = False
-        self.step_cmd_li = []
-        self.speed_cmd_li = []
+
         ###=== Create instance ===###
         try: self.mot = pyinterface.open(7415, self.rsw_id)
         except OSError as e:
             rospy.logerr("{e.strerror}. node={node_name}, rsw={rsw_id}".
                          format(self.node_name, self.rsw_id))
             sys.exit()
+
         ###=== Setting the board ===###
         self.mot.initialize(axis='xyzu')
         self.motion['x']['clock'] = rospy.get_param('~clock_x')
@@ -95,6 +96,7 @@ class cpz7415v_controller(object):
         self.mot.set_motion(axis='y', mode=self.move_mode['y'], motion=self.motion)
         self.mot.set_motion(axis='z', mode=self.move_mode['z'], motion=self.motion)
         self.mot.set_motion(axis='u', mode=self.move_mode['u'], motion=self.motion)
+
         ###=== Define topic ===###
         topic_step_x_cmd = '/{0}_rsw{1}_x_step_cmd'.format(self.node_name, self.rsw_id)
         topic_step_x = '/{0}_rsw{1}_x_step'.format(self.node_name, self.rsw_id)
@@ -113,10 +115,7 @@ class cpz7415v_controller(object):
         topic_speed_u_cmd = '/{0}_rsw{1}_u_speed_cmd'.format(self.node_name, self.rsw_id)
         topic_speed_u = '/{0}_rsw{1}_u_speed'.format(self.node_name, self.rsw_id)
         topic_output_do_cmd = '/{0}_rsw{1}_do_cmd'.format(self.node_name, self.rsw_id)
-        # topic_output_do1_cmd = '/{0}_rsw{1}_do1_cmd'.format(self.node_name, self.rsw_id)
-        # topic_output_do2_cmd = '/{0}_rsw{1}_do2_cmd'.format(self.node_name, self.rsw_id)
-        # topic_output_do3_cmd = '/{0}_rsw{1}_do3_cmd'.format(self.node_name, self.rsw_id)
-        # topic_output_do4_cmd = '/{0}_rsw{1}_do4_cmd'.format(self.node_name, self.rsw_id)
+
         ###=== Define Publisher ===###
         self.pub_step_x = rospy.Publisher(topic_step_x, Int64, queue_size=1)
         self.pub_speed_x = rospy.Publisher(topic_speed_x, Int64, queue_size=1)
@@ -126,6 +125,7 @@ class cpz7415v_controller(object):
         self.pub_speed_z = rospy.Publisher(topic_speed_z, Int64, queue_size=1)
         self.pub_step_u = rospy.Publisher(topic_step_u, Int64, queue_size=1)
         self.pub_speed_u = rospy.Publisher(topic_speed_u, Int64, queue_size=1)
+
         ###=== Define Subscriber ===###
         self.sub_step_x_cmd = rospy.Subscriber(topic_step_x_cmd, Int64, self.set_step, callback_args='x')
         self.sub_speed_x_cmd = rospy.Subscriber(topic_speed_x_cmd, Int64, self.set_speed, callback_args='x')
@@ -136,47 +136,57 @@ class cpz7415v_controller(object):
         self.sub_step_u_cmd = rospy.Subscriber(topic_step_u_cmd, Int64, self.set_step, callback_args='u')
         self.sub_speed_u_cmd = rospy.Subscriber(topic_speed_u_cmd, Int64, self.set_speed, callback_args='u')
         self.sub_output_do_cmd = rospy.Subscriber(topic_output_do_cmd, Int64, self.output_do)
-        # self.sub_output_do1_cmd = rospy.Subscriber(topic_output_do1_cmd, Bool, self.output_do, callback_args=1)
-        # self.sub_output_do2_cmd = rospy.Subscriber(topic_output_do2_cmd, Bool, self.output_do, callback_args=2)
-        # self.sub_output_do3_cmd = rospy.Subscriber(topic_output_do3_cmd, Bool, self.output_do, callback_args=3)
-        # self.sub_output_do4_cmd = rospy.Subscriber(topic_output_do4_cmd, Bool, self.output_do, callback_args=4)
+
+        pass
 
 
     def set_step(self, q, axis):
         self.motion[axis]['step'] = q.data
+        self.step_flag[axis] = True
         return
-
 
     def _set_step(self):
         axis = ''
         step = []
         for i in self.move_mode:
-            if self.move_mode[i] == 'ptp':
+            if self.step_flag[i]:
                 axis += i
                 step.append(self.motion[i]['step'])
             else: pass
+
         if axis != '':
             self.mot.set_motion(axis=axis, mode='ptp', motion=self.motion)
             self.mot.start_motion(axis=axis, start_mode='acc', move_mode='ptp')
+            for i in axis:
+                self.step_flag[i] = False
+            time.sleep(0.0001)
         else: pass
-        return
 
+        return
 
     def _get_step(self):
         step = self.mot.read_counter(axis='xyzu', cnt_mode='counter')
-        if self.last_position['x'] != step[0]: self.pub_step_x.publish(step[0])
-        if self.last_position['y'] != step[1]: self.pub_step_y.publish(step[1])
-        if self.last_position['z'] != step[2]: self.pub_step_z.publish(step[2])
-        if self.last_position['u'] != step[3]: self.pub_step_u.publish(step[3])
-        self.last_position['x'] = step[0]
-        self.last_position['y'] = step[1]
-        self.last_position['z'] = step[2]
-        self.last_position['u'] = step[3]
+
+        if self.last_position['x'] != step[0]:
+            self.pub_step_x.publish(step[0])
+            self.last_position['x'] = step[0]
+        if self.last_position['y'] != step[1]:
+            self.pub_step_y.publish(step[1])
+            self.last_position['y'] = step[1]
+        if self.last_position['z'] != step[2]:
+            self.pub_step_z.publish(step[2])
+            self.last_position['z'] = step[2]
+        if self.last_position['u'] != step[3]:
+            self.pub_step_u.publish(step[3])
+            self.last_position['u'] = step[3]
+
+        time.sleep(0.0001)
         return
 
 
     def set_speed(self, q, axis):
         self.motion[axis]['speed'] = q.data
+        self.speed_flag[axis] = True
         return
 
 
@@ -184,49 +194,65 @@ class cpz7415v_controller(object):
         axis = ''
         speed = []
         for i in self.move_mode:
-            if self.move_mode[i] == 'jog':
+            if self.speed_flag[i]:
                 axis += i
                 speed.append(self.motion[i]['speed'])
             else: pass
+
         if axis != '':
             self.mot.set_motion(axis=axis, mode='jog', motion=self.motion)
             self.mot.change_speed(axis=axis, mode='accdec_change', speed=speed)
+            for i in axis:
+                self.speed_flag[i] = False
+            time.sleep(0.0001)
         else: pass
+
         return
 
 
     def _get_speed(self):
         speed = self.mot.read_speed(axis='xyzu')
-        if self.last_speed['x'] != speed[0]: self.pub_speed_x.publish(speed[0])
-        if self.last_speed['y'] != speed[1]: self.pub_speed_y.publish(speed[1])
-        if self.last_speed['z'] != speed[2]: self.pub_speed_z.publish(speed[2])
-        if self.last_speed['u'] != speed[3]: self.pub_speed_u.publish(speed[3])
-        self.last_speed['x'] = speed[0]
-        self.last_speed['y'] = speed[1]
-        self.last_speed['z'] = speed[2]
-        self.last_speed['u'] = speed[3]
+
+        if self.last_speed['x'] != speed[0]:
+            self.pub_speed_x.publish(speed[0])
+            self.last_speed['x'] = speed[0]
+        if self.last_speed['y'] != speed[1]:
+            self.pub_speed_y.publish(speed[1])
+            self.last_speed['y'] = speed[1]
+        if self.last_speed['z'] != speed[2]:
+            self.pub_speed_z.publish(speed[2])
+            self.last_speed['z'] = speed[2]
+        if self.last_speed['u'] != speed[3]:
+            self.pub_speed_u.publish(speed[3])
+            self.last_speed['u'] = speed[3]
+
+        time.sleep(0.0001)
         return
 
 
     def output_do(self, q):
         self.do_status = q.data
+        self.do_flag = True
         return
     
     
     def _output_do(self):
         self.mot.output_do(self.do_status)
+        self.do_flag = False
+        time.sleep(0.001)
         return
     
 
     def _main_thread(self):
         while not rospy.is_shutdown():
             self._set_step()
-            time.sleep(1.)
             self._set_speed()
             self._get_step()
             self._get_speed()
-            self._output_do()
+            if self.do_flag:
+                self._output_do()
             continue
+        return
 
 
     def start_thread_ROS(self):
