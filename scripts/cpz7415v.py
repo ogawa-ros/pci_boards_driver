@@ -159,7 +159,7 @@ class cpz7415v_controller(object):
 
             for i, ax in enumerate(axis):
                 if onoff[i]:
-                    self.mot.change_step(ax, self.motion[ax]['step'])
+                    self.mot.change_step(ax, [self.motion[ax]['step']])
                 else:
                     self.mot.start_motion(axis=ax, start_mode='acc', move_mode='ptp')
                 self.step_flag[ax] = False
