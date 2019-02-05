@@ -47,7 +47,6 @@ class cpz7415v_controller(object):
     
     def __init__(self):
         ###=== Define member-variables ===###
-        self.rate = rospy.get_param('~rate')
         self.rsw_id = rospy.get_param('~rsw_id')
         self.node_name = rospy.get_param('~node_name')
         self.move_mode['x'] = rospy.get_param('~mode_x')
@@ -156,12 +155,16 @@ class cpz7415v_controller(object):
 
         if axis != '':
             self.mot.set_motion(axis=axis, mode='ptp', motion=self.motion)
-            self.mot.start_motion(axis=axis, start_mode='acc', move_mode='ptp')
-            for i in axis:
-                self.step_flag[i] = False
-            time.sleep(0.0001)
-        else: pass
+            onoff = self.mot.check_move_onoff(axis)
 
+            for i, ax in enumerate(axis):
+                if onoff[i]:
+                    self.mot.change_step(ax, self.motion[ax]['step'])
+                else:
+                    self.mot.start_motion(axis=ax, start_mode='acc', move_mode='ptp')
+                self.step_flag[ax] = False
+        else: pass
+        time.sleep(0.0001)
         return
 
     def _get_step(self):
