@@ -204,12 +204,16 @@ class cpz7415v_controller(object):
 
         if axis != '':
             self.mot.set_motion(axis=axis, mode='jog', motion=self.motion)
-            self.mot.change_speed(axis=axis, mode='accdec_change', speed=speed)
-            for i in axis:
-                self.speed_flag[i] = False
-            time.sleep(0.0001)
-        else: pass
+            onoff = self.mot.check_move_onoff(axis)
 
+            for i, ax in enumerate(axis):
+                if onoff[i]:
+                    self.mot.change_speed(axis=ax, mode='accdec_change', speed=speed[i])
+                else:
+                    self.mot.start_motion(axis=ax, start_mode='acc', move_mode='jog')
+                self.speed_flag[ax] = False
+        else: pass
+        time.sleep(0.0001)
         return
 
 
