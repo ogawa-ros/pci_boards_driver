@@ -8,10 +8,10 @@
     <param name="~mode_x" value='ptp' />
     <param name="~clock_x" value="299" />
     <param name="~acc_mode_x" value="acc_normal" />
-    <param name="~low_speed_x" value="500" />
-    <param name="~speed_x" value="30000" />
-    <param name="~acc_x" value="10" />
-    <param name="~dec_x" value="10" />
+    <param name="~low_speed_x" value="200" />
+    <param name="~speed_x" value="3000" />
+    <param name="~acc_x" value="2000" />
+    <param name="~dec_x" value="4000" />
     <param name="~step_x" value="0" />
 
     <param name="~mode_y" value='ptp' />

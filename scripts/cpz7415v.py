@@ -62,7 +62,7 @@ class cpz7415v_controller(object):
             sys.exit()
 
         ###=== Setting the board ===###
-        self.mot.initialize(axis='xyzu')
+        self.mot.initialize()
         self.motion['x']['clock'] = rospy.get_param('~clock_x')
         self.motion['x']['acc_mode'] = rospy.get_param('~acc_mode_x')
         self.motion['x']['low_speed'] = rospy.get_param('~low_speed_x')
@@ -155,7 +155,7 @@ class cpz7415v_controller(object):
 
         if axis != '':
             self.mot.set_motion(axis=axis, mode='ptp', motion=self.motion)
-            onoff = self.mot.check_move_onoff(axis)
+            onoff = self.mot.driver.check_move_onoff(axis)
 
             for i, ax in enumerate(axis):
                 if onoff[i]:
@@ -203,8 +203,8 @@ class cpz7415v_controller(object):
             else: pass
 
         if axis != '':
-            self.mot.set_motion(axis=axis, mode='jog', motion=self.motion)
-            onoff = self.mot.check_move_onoff(axis)
+            self.mot.driver.set_motion(axis=axis, mode='jog', motion=self.motion)
+            onoff = self.mot.driver.check_move_onoff(axis)
 
             for i, ax in enumerate(axis):
                 if onoff[i]:
