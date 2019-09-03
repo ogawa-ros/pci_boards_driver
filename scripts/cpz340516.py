@@ -68,7 +68,7 @@ class cpz340516_controller(object):
     def output_current(self):
         while not rospy.is_shutdown():
 
-            if len(self.param_buff) >= 0:
+            if len(self.param_buff) < 0:
                 time.sleep(self.rate)
                 continue
 

@@ -55,7 +55,7 @@ class cpz340816_controller(object):
     def output_voltage(self):
         while not rospy.is_shutdown():
 
-            if len(self.param_buff) >= 0:
+            if len(self.param_buff) < 0:
                 time.sleep(self.rate)
                 continue
 
