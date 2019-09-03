@@ -50,7 +50,7 @@ class cpz340516_controller(object):
             name = topic,
             data_class = Float64,
             latch = True,
-            queue_size = 1
+            # queue_size = 1
             ) for topic in self.topic_list]
 
         self.sub_list = [rospy.Subscriber(
@@ -58,7 +58,7 @@ class cpz340516_controller(object):
             data_class = Float64,
             callback = self.set_param,
             callback_args = ch,
-            queue_size = 1
+            # queue_size = 1
             ) for ch, topic in enumerate(self.topic_list, start=1)]
 
     def set_param(self, req, ch):
@@ -80,9 +80,8 @@ class cpz340516_controller(object):
                 current = list(param.values())[0]
 
                 self.da.output_current(ch, current)
-
                 self.pub_list[ch-1].publish(current)
-                continue
+
 
     def start_thread_ROS(self):
         th = threading.Thread(target=self.output_current)
