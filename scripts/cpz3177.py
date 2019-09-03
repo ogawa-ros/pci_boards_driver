@@ -32,13 +32,13 @@ def select_singlediff():
 
 
 if __name__ == '__main__':
-    ch_number = {'single': 64, 'diff': 32}        
+    ch_number = {'single': 64, 'diff': 32}
 
     rospy.init_node('cpz3177')
     rate = rospy.get_param('~rate')
     rsw_id = rospy.get_param('~rsw_id')
     node_name = 'cpz3177'
-    
+
     topic_list = select_singlediff()
     pub_list = [rospy.Publisher('{0}_rsw{1}_{2}{3}'.format(node_name, rsw_id, mode, ch), Float64, queue_size=1)
                        for ch, mode in topic_list]
@@ -54,10 +54,10 @@ while not rospy.is_shutdown():
     for param, pub in zip(topic_list, pub_list):
         ch = param[0]
         mode = param[1]
-        msg = Float64()    
+        msg = Float64()
 
         ret = ad.input_voltage(ch, mode)
-            
+
         msg.data = ret
         pub.publish(msg)
     time.sleep(rate)
