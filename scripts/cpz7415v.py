@@ -155,7 +155,7 @@ class cpz7415v_controller(object):
 
         if axis != '':
             self.mot.set_motion(axis=axis, mode='ptp', motion=self.motion)
-            onoff = self.mot.driver.check_move_onoff(axis)
+            onoff = self.mot.check_move_onoff(axis)
 
             for i, ax in enumerate(axis):
                 if onoff[i]:
