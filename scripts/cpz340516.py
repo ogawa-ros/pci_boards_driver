@@ -57,7 +57,7 @@ class cpz340516_controller(object):
             name = topic + '_cmd',
             data_class = Float64,
             callback = self.set_param,
-            callback_args = ch
+            callback_args = ch,
             queue_size = 1
             ) for ch, topic in enumerate(self.topic_list, start=1)]
 
