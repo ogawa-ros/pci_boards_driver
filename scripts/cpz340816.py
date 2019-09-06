@@ -36,7 +36,7 @@ class cpz340816_controller(object):
             name = topic,
             data_class = Float64,
             latch = True,
-            # queue_size = 1
+            queue_size = 1
             ) for topic in self.topic_list]
 
         self.sub_list = [rospy.Subscriber(
@@ -55,7 +55,7 @@ class cpz340816_controller(object):
     def output_voltage(self):
         while not rospy.is_shutdown():
 
-            if len(self.param_buff) < 0:
+            if len(self.param_buff) <= 0:
                 time.sleep(self.rate)
                 continue
 
@@ -68,6 +68,7 @@ class cpz340816_controller(object):
 
                 self.da.output_voltage(ch, voltage)
                 self.pub_list[ch-1].publish(voltage)
+                time.sleep(1e-3) # 1 ms.
 
 
     def start_thread_ROS(self):
